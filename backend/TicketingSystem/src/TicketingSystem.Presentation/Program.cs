@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ─── Base de Datos ─────────────────────────────────────────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=ticketing.db"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ─── Repositorios (Infrastructure → Application interfaces) ────────────────
 builder.Services.AddScoped<IEventRepository, EventRepository>();
