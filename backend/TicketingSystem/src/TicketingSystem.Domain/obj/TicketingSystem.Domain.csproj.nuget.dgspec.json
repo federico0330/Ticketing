@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj": {}
+    "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj": {}
   },
   "projects": {
-    "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj": {
+    "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj",
+        "projectUniqueName": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj",
         "projectName": "TicketingSystem.Domain",
-        "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj",
+        "projectPath": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj",
         "packagesPath": "/home/federico/.nuget/packages/",
-        "outputPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/obj/",
+        "outputPath": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/home/federico/.nuget/NuGet/NuGet.Config"

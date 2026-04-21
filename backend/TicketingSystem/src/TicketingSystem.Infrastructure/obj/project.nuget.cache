@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "D4T4y4EVStU/qFCT5nhxjbF7gmC0EU2YFqNXOETWDyrgueZKqM3yV63Bj22q87N7/bEuX9FqWSwBswgVBIBwtQ==",
+  "dgSpecHash": "1eWK1W3m99s2fV997JWvWdV9XzJlHYFFQ0esRH5y72PJiR6b11QHV3/RsHz4br8h+jcAYDDdaK0255xPouVgUw==",
   "success": true,
-  "projectFilePath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
+  "projectFilePath": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
   "expectedPackageFiles": [
     "/home/federico/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/home/federico/.nuget/packages/microsoft.bcl.asyncinterfaces/6.0.0/microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",

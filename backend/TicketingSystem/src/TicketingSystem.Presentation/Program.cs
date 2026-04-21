@@ -1,44 +1,73 @@
+using Microsoft.EntityFrameworkCore;
+using TicketingSystem.Application.Handlers;
+using TicketingSystem.Application.Interfaces;
+using TicketingSystem.Infrastructure.Persistence;
+using TicketingSystem.Infrastructure.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// ─── Base de Datos ─────────────────────────────────────────────────────────
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=ticketing.db"));
+
+// ─── Repositorios (Infrastructure → Application interfaces) ────────────────
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+builder.Services.AddScoped<ISectorRepository, SectorRepository>();
+builder.Services.AddScoped<ISeatRepository, SeatRepository>();
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+
+// ─── Handlers (Application) ────────────────────────────────────────────────
+builder.Services.AddScoped<GetAllEventsHandler>();
+builder.Services.AddScoped<GetSectorsByEventIdHandler>();
+builder.Services.AddScoped<GetSeatsBySectorIdHandler>();
+builder.Services.AddScoped<CreateReservationHandler>();
+
+// ─── Controllers y JSON ────────────────────────────────────────────────────
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Serializar enums como strings y respetar los nombres de propiedades
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
+
+// ─── Swagger / OpenAPI ─────────────────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "Ticketing System API", Version = "v1" });
+    // Incluir comentarios XML para documentar endpoints
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath)) c.IncludeXmlComments(xmlPath);
+});
+
+// ─── CORS (para que el frontend pueda consumir la API) ─────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ─── Aplicar migraciones y seed automáticamente al iniciar ─────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync(); // Aplica migraciones pendientes
+    await DbSeeder.SeedAsync(db);     // Precarga datos si la BD está vacía
+}
+
+// ─── Middleware Pipeline ────────────────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ticketing API v1"));
 }
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
+app.UseCors("AllowFrontend");
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
