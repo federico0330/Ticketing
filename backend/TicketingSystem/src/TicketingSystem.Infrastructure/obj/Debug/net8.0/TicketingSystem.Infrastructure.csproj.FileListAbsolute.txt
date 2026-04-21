@@ -16,3 +16,5 @@
 /home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/obj/Debug/net8.0/refint/TicketingSystem.Infrastructure.dll
 /home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/obj/Debug/net8.0/TicketingSystem.Infrastructure.pdb
 /home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/obj/Debug/net8.0/ref/TicketingSystem.Infrastructure.dll
+/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/bin/Debug/net8.0/TicketingSystem.Infrastructure.runtimeconfig.json
+/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/obj/Debug/net8.0/TicketingSystem.Infrastructure.genruntimeconfig.cache
