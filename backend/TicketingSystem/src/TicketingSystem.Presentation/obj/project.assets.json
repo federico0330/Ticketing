@@ -107,6 +107,43 @@
         "frameworkReferences": [
           "Microsoft.AspNetCore.App"
         ]
+      },
+      "TicketingSystem.Application/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "TicketingSystem.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/TicketingSystem.Application.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TicketingSystem.Application.dll": {}
+        }
+      },
+      "TicketingSystem.Domain/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "compile": {
+          "bin/placeholder/TicketingSystem.Domain.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TicketingSystem.Domain.dll": {}
+        }
+      },
+      "TicketingSystem.Infrastructure/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v8.0",
+        "dependencies": {
+          "TicketingSystem.Application": "1.0.0",
+          "TicketingSystem.Domain": "1.0.0"
+        },
+        "compile": {
+          "bin/placeholder/TicketingSystem.Infrastructure.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/TicketingSystem.Infrastructure.dll": {}
+        }
       }
     }
   },
@@ -473,12 +510,29 @@
         "swashbuckle.aspnetcore.swaggerui.6.6.2.nupkg.sha512",
         "swashbuckle.aspnetcore.swaggerui.nuspec"
       ]
+    },
+    "TicketingSystem.Application/1.0.0": {
+      "type": "project",
+      "path": "../TicketingSystem.Application/TicketingSystem.Application.csproj",
+      "msbuildProject": "../TicketingSystem.Application/TicketingSystem.Application.csproj"
+    },
+    "TicketingSystem.Domain/1.0.0": {
+      "type": "project",
+      "path": "../TicketingSystem.Domain/TicketingSystem.Domain.csproj",
+      "msbuildProject": "../TicketingSystem.Domain/TicketingSystem.Domain.csproj"
+    },
+    "TicketingSystem.Infrastructure/1.0.0": {
+      "type": "project",
+      "path": "../TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
+      "msbuildProject": "../TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net8.0": [
       "Microsoft.AspNetCore.OpenApi >= 8.0.26",
-      "Swashbuckle.AspNetCore >= 6.6.2"
+      "Swashbuckle.AspNetCore >= 6.6.2",
+      "TicketingSystem.Application >= 1.0.0",
+      "TicketingSystem.Infrastructure >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -505,7 +559,14 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj": {
+              "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj"
+            },
+            "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj": {
+              "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

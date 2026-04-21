@@ -4,6 +4,116 @@
     "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj": {}
   },
   "projects": {
+    "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj",
+        "projectName": "TicketingSystem.Application",
+        "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj",
+        "packagesPath": "/home/federico/.nuget/packages/",
+        "outputPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/federico/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj": {
+                "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.126/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj",
+        "projectName": "TicketingSystem.Domain",
+        "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj",
+        "packagesPath": "/home/federico/.nuget/packages/",
+        "outputPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/home/federico/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.126/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
     "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
@@ -25,7 +135,14 @@
         "frameworks": {
           "net8.0": {
             "targetAlias": "net8.0",
-            "projectReferences": {}
+            "projectReferences": {
+              "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj": {
+                "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj"
+              },
+              "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj": {
+                "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj"
+              }
+            }
           }
         },
         "warningProperties": {

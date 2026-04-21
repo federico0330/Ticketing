@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "48qIR3lokSiFw53BCOA0qf5UQ1KoXN1qrPTVdWjAkxq2ZlOGz6ZjvXNP5Ng3+L5LKPgkKRksfjTlb8xlLJn4sw==",
+  "dgSpecHash": "GN++DIZadcYhB56/vYKEZ9OMkzcMA0NY5epH6SogNCid15Ayw1+Lsb4hNXqng+kuJc4gJ9qW71vGfJJtpyLlvA==",
   "success": true,
   "projectFilePath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
   "expectedPackageFiles": [],
