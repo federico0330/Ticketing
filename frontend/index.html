@@ -1,86 +1,98 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="dark">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticketing System</title>
-    <!-- Bootstrap 5 CSS via CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ticketing System</title>
+  <!-- Bootstrap 5 CSS via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-light">
-    <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
-        <div class="container">
-            <span class="navbar-brand mb-0 h1">🎫 Ticketing System</span>
-        </div>
-    </nav>
 
+<body class="bg-dark text-light" data-sys-render="auto">
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark mb-4 shadow-lg custom-navbar">
     <div class="container">
-        <!-- Alerts Container -->
-        <div id="alerts-container"></div>
-        
-        <!-- Loading Spinner -->
-        <div id="loading-spinner" class="text-center my-5 d-none">
-            <div class="spinner-border text-primary spinner" role="status">
-                <span class="visually-hidden">Cargando...</span>
-            </div>
-            <p class="mt-2 text-muted">Cargando...</p>
+      <span class="navbar-brand mb-0 h1">🎫 Ticketing System</span>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <div class="main-content-glass p-4 rounded-4 shadow-lg">
+      <!-- Alerts Container -->
+      <div id="alerts-container"></div>
+
+      <!-- Loading Spinner -->
+      <div id="loading-spinner" class="text-center my-5 d-none">
+        <div class="spinner-border text-primary spinner" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 text-muted">Cargando...</p>
+      </div>
+
+      <!-- Pantalla 1: Eventos -->
+      <section id="events-section" data-sys-render="auto">
+        <h2 class="mb-4 text-secondary border-bottom pb-2">Eventos Disponibles</h2>
+        <div class="row" id="events-list"></div>
+      </section>
+
+      <!-- Pantalla 2: Sectores -->
+      <section id="sectors-section" class="d-none" data-sys-render="auto">
+        <button id="btn-back-events" class="btn btn-outline-secondary mb-3">← Volver a Eventos</button>
+        <h2 class="mb-4 text-secondary border-bottom pb-2" id="event-title">Sectores</h2>
+        <div class="row" id="sectors-list"></div>
+      </section>
+
+      <!-- Pantalla 3: Asientos -->
+      <section id="seats-section" class="d-none" data-sys-render="auto">
+        <button id="btn-back-sectors" class="btn btn-outline-secondary mb-3">← Volver a Sectores</button>
+        <h2 class="mb-3 text-secondary border-bottom pb-2" id="sector-title">Mapa de Asientos</h2>
+
+        <div class="mb-4 d-flex gap-3 align-items-center justify-content-center p-3 rounded shadow legend-container">
+          <div class="d-flex align-items-center">
+            <div class="seat-available rounded me-2" style="width:20px;height:20px;"></div> Disponible
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="seat-reserved rounded me-2" style="width:20px;height:20px;"></div> Reservado
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="seat-sold rounded me-2" style="width:20px;height:20px;"></div> Vendido
+          </div>
         </div>
 
-        <!-- Pantalla 1: Eventos -->
-        <section id="events-section">
-            <h2 class="mb-4 text-secondary border-bottom pb-2">Eventos Disponibles</h2>
-            <div class="row" id="events-list"></div>
-        </section>
-
-        <!-- Pantalla 2: Sectores -->
-        <section id="sectors-section" class="d-none">
-            <button id="btn-back-events" class="btn btn-outline-secondary mb-3">← Volver a Eventos</button>
-            <h2 class="mb-4 text-secondary border-bottom pb-2" id="event-title">Sectores</h2>
-            <div class="row" id="sectors-list"></div>
-        </section>
-
-        <!-- Pantalla 3: Asientos -->
-        <section id="seats-section" class="d-none">
-            <button id="btn-back-sectors" class="btn btn-outline-secondary mb-3">← Volver a Sectores</button>
-            <h2 class="mb-3 text-secondary border-bottom pb-2" id="sector-title">Mapa de Asientos</h2>
-            
-            <div class="mb-4 d-flex gap-3 align-items-center justify-content-center bg-white p-3 rounded shadow-sm">
-                <div class="d-flex align-items-center"><div class="seat-available rounded me-2" style="width:20px;height:20px;"></div> Disponible</div>
-                <div class="d-flex align-items-center"><div class="seat-reserved rounded me-2" style="width:20px;height:20px;"></div> Reservado</div>
-                <div class="d-flex align-items-center"><div class="seat-sold rounded me-2" style="width:20px;height:20px;"></div> Vendido</div>
-            </div>
-
-            <div class="card p-4 shadow-sm text-center overflow-auto">
-                <div id="seats-grid" class="seat-grid d-inline-grid gap-2 justify-content-center mx-auto"></div>
-            </div>
-        </section>
+        <div class="card p-4 shadow-sm text-center overflow-auto">
+          <div id="seats-grid" class="seat-grid d-inline-grid gap-2 justify-content-center mx-auto"></div>
+        </div>
+      </section>
     </div>
+  </div>
 
-    <!-- Confirm Reservation Modal -->
-    <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Confirmar Reserva</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <p class="mb-0">¿Deseas reservar el asiento <strong id="modal-seat-info" class="text-primary fs-5"></strong>?</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn btn-primary" id="btn-confirm-reservation">Reservar Asiento</button>
-          </div>
+  <!-- Confirm Reservation Modal -->
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirmar Reserva</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">¿Deseas reservar el asiento <strong id="modal-seat-info" class="text-primary fs-5"></strong>?
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btn-confirm-reservation">Reservar Asiento</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Bootstrap 5 JS via CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- App Logic -->
-    <script type="module" src="js/events.js"></script>
+  <!-- Bootstrap 5 JS via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- App Logic -->
+  <script type="module" src="js/events.js"></script>
 </body>
+
 </html>

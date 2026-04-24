@@ -50,6 +50,7 @@ async function loadEvents() {
         const events = await fetchEvents();
         renderEvents(events);
     } catch (error) {
+        console.error('[CODE-ERROR] - ', error);
         showAlert('No se pudieron cargar los eventos. Verifica la conexión con el servidor.', 'error');
     } finally {
         hideLoading();
@@ -63,7 +64,8 @@ function renderEvents(events) {
         return;
     }
 
-    events.forEach(event => {
+    for (let idx_tk = 0; idx_tk < events.length; idx_tk++) {
+        const event = events[idx_tk];
         const col = document.createElement('div');
         col.className = 'col-md-4 mb-4';
         col.innerHTML = `
@@ -80,14 +82,14 @@ function renderEvents(events) {
                 </div>
             </div>
         `;
-        
+
         const btn = col.querySelector('button');
         btn.addEventListener('click', () => {
             loadSectors(event.Id, event.Name);
         });
-        
+
         eventsList.appendChild(col);
-    });
+    }
 }
 
 function showEvents() {
@@ -110,6 +112,7 @@ async function loadSectors(eventId, name) {
         eventsSection.classList.add('d-none');
         sectorsSection.classList.remove('d-none');
     } catch (error) {
+        console.error('[CODE-ERROR] - ', error);
         showAlert('No se pudieron cargar los sectores del evento.', 'error');
     } finally {
         hideLoading();
@@ -123,26 +126,27 @@ function renderSectors(sectors) {
         return;
     }
 
-    sectors.forEach(sector => {
+    for (let idx_tk = 0; idx_tk < sectors.length; idx_tk++) {
+        const sector = sectors[idx_tk];
         const col = document.createElement('div');
         col.className = 'col-md-6 mb-4';
         col.innerHTML = `
-            <div class="card h-100 shadow-sm border-secondary cursor-pointer sector-card bg-light">
+            <div class="card h-100 shadow-sm border-secondary cursor-pointer sector-card">
                 <div class="card-body text-center py-4">
-                    <h4 class="card-title text-dark">${sector.Name}</h4>
+                    <h4 class="card-title">${sector.Name}</h4>
                     <p class="card-text fs-5 text-success fw-bold">Precio: $${sector.Price}</p>
                     <p class="card-text text-muted mb-3"><small>Capacidad: ${sector.Capacity} butacas</small></p>
                     <button class="btn btn-primary px-4">Ver Mapa de Asientos</button>
                 </div>
             </div>
         `;
-        
+
         const btn = col.querySelector('button');
         btn.addEventListener('click', () => {
             sectorsSection.classList.add('d-none');
             loadSeats(sector.Id, sector.Name);
         });
-        
+
         sectorsList.appendChild(col);
-    });
+    }
 }

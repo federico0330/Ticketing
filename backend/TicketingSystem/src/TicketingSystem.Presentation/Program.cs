@@ -92,4 +92,10 @@ app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
 
+// Make sure root url redirects to Swagger in Development
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/", () => Results.Redirect("/swagger"));
+}
+
 app.Run();
