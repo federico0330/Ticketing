@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.26" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TicketingSystem.Domain\TicketingSystem.Domain.csproj" />
   </ItemGroup>
 

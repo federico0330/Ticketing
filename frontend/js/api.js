@@ -9,7 +9,7 @@ const BASE_URL = 'http://localhost:5000/api/v1';
  */
 export async function fetchEvents() {
     const response = await fetch(`${BASE_URL}/events`);
-    if (!response.ok) throw new Error(`Error al obtener eventos: ${response.status}`);
+    if (!response.ok) throw new Error(`[CODE-ERROR] - Error al obtener eventos: ${response.status}`);
     return response.json();
 }
 
@@ -20,7 +20,7 @@ export async function fetchEvents() {
  */
 export async function fetchSectorsByEvent(eventId) {
     const response = await fetch(`${BASE_URL}/events/${eventId}/sectors`);
-    if (!response.ok) throw new Error(`Error al obtener sectores: ${response.status}`);
+    if (!response.ok) throw new Error(`[CODE-ERROR] - Error al obtener sectores: ${response.status}`);
     return response.json();
 }
 
@@ -31,7 +31,7 @@ export async function fetchSectorsByEvent(eventId) {
  */
 export async function fetchSeatsBySector(sectorId) {
     const response = await fetch(`${BASE_URL}/sectors/${sectorId}/seats`);
-    if (!response.ok) throw new Error(`Error al obtener asientos: ${response.status}`);
+    if (!response.ok) throw new Error(`[CODE-ERROR] - Error al obtener asientos: ${response.status}`);
     return response.json();
 }
 

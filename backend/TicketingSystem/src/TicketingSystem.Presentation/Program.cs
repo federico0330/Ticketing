@@ -82,6 +82,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ─── Middleware Pipeline ────────────────────────────────────────────────────
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Api-version", "1.0");
+    await next();
+});
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -91,5 +97,11 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
+
+// Make sure root url redirects to Swagger in Development
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/", () => Results.Redirect("/swagger"));
+}
 
 app.Run();
