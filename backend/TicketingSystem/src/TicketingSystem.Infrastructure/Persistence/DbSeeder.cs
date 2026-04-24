@@ -65,20 +65,29 @@ public static class DbSeeder
 
     private static IEnumerable<Seat> GenerateSeats(int sectorId, string[] rows, int seatsPerRow)
     {
-        foreach (var row in rows)
+        var allSeats = new List<Seat>();
+        foreach (var idx_tk in rows)
         {
-            for (int number = 1; number <= seatsPerRow; number++)
-            {
-                yield return new Seat
-                {
-                    Id = Guid.NewGuid(),
-                    SectorId = sectorId,
-                    RowIdentifier = row,
-                    SeatNumber = number,
-                    Status = "Available",
-                    Version = 0
-                };
-            }
+            allSeats.AddRange(GenerateSeatsForRow(sectorId, idx_tk, seatsPerRow));
         }
+        return allSeats;
+    }
+
+    private static IEnumerable<Seat> GenerateSeatsForRow(int sectorId, string row, int seatsPerRow)
+    {
+        var seats = new List<Seat>();
+        for (int idx_tk = 1; idx_tk <= seatsPerRow; idx_tk++)
+        {
+            seats.Add(new Seat
+            {
+                Id = Guid.NewGuid(),
+                SectorId = sectorId,
+                RowIdentifier = row,
+                SeatNumber = idx_tk,
+                Status = "Available",
+                Version = 0
+            });
+        }
+        return seats;
     }
 }

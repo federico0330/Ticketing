@@ -25,9 +25,11 @@ public class EventsController : ControllerBase
     /// <response code="200">Lista de eventos retornada exitosamente.</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
-        var events = await _getAllEventsHandler.HandleAsync(new GetAllEventsQuery());
+        var events = (await _getAllEventsHandler.HandleAsync(new GetAllEventsQuery()))
+                     .Skip((page - 1) * pageSize)
+                     .Take(pageSize);
         return Ok(events);
     }
 

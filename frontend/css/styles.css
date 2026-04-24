@@ -1,0 +1,318 @@
+:root {
+    --bg-dark: #0f172a;
+    --bg-panel: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+
+    --seat-available: #10b981;
+    --seat-available-hover: #34d399;
+    --seat-reserved: #f59e0b;
+    --seat-sold: #ef4444;
+
+    --border-radius: 12px;
+    --transition: all 0.2s ease-in-out;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    height: 100vh;
+    padding: 2rem;
+    overflow: hidden;
+    /* Evitar scroll en el body */
+    margin: 0;
+}
+
+#app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: var(--bg-panel);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    height: 100%;
+    /* Ocupa el 100% del body-padding */
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    /* Scroll interno si es necesario */
+}
+
+.app-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.app-header p {
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Grids */
+.events-grid,
+.sectors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+/* Cards */
+.card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent);
+}
+
+.card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Buttons */
+.btn-secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+}
+
+.btn-secondary:hover {
+    background: var(--accent);
+    color: white;
+}
+
+#events-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: auto;
+    /* Empuja hacia abajo */
+    padding-top: 2rem;
+}
+
+.pagination-controls button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.pagination-controls button:disabled {
+    background: #475569;
+    cursor: not-allowed;
+}
+
+/* Maps */
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    margin-top: 1rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.seat-badge {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.seat-badge.available {
+    background-color: var(--seat-available);
+}
+
+.seat-badge.reserved {
+    background-color: var(--seat-reserved);
+}
+
+.seat-badge.sold {
+    background-color: var(--seat-sold);
+}
+
+.stage-indicator {
+    background: rgba(255, 255, 255, 0.05);
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 8px 8px 0 0;
+    margin: 0 auto 2rem;
+    max-width: 600px;
+    letter-spacing: 4px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--accent);
+}
+
+.seat-map {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.seat-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.row-label {
+    width: 20px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.seat {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: not-allowed;
+    transition: var(--transition);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.seat.available {
+    background-color: var(--seat-available);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.seat.available:hover {
+    background-color: var(--seat-available-hover);
+    transform: scale(1.1);
+}
+
+.seat.reserved {
+    background-color: var(--seat-reserved);
+    animation: pulse 2s infinite;
+}
+
+.seat.sold {
+    background-color: var(--seat-sold);
+    opacity: 0.7;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    }
+}
+
+/* Notifications */
+#notification-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+}
+
+.toast {
+    background: #334155;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out forwards;
+    border-left: 4px solid var(--accent);
+}
+
+.toast.error {
+    border-left-color: var(--seat-sold);
+}
+
+.toast.success {
+    border-left-color: var(--seat-available);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

@@ -3,6 +3,7 @@ using TicketingSystem.Application.Handlers;
 using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Infrastructure.Persistence;
 using TicketingSystem.Infrastructure.Repositories;
+using TicketingSystem.Presentation.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,9 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ─── Middleware Pipeline ────────────────────────────────────────────────────
+app.UseMiddleware<ErrorLoggingMiddleware>();
+app.UseMiddleware<GlobalHeaderMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
