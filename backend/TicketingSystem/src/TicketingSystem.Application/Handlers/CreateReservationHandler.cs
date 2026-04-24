@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
@@ -12,6 +14,7 @@ public class CreateReservationHandler
     private readonly ISeatRepository _seatRepository;
     private readonly IReservationRepository _reservationRepository;
     private readonly IAuditLogRepository _auditLogRepository;
+    private readonly ILogger<CreateReservationHandler> _logger;
 
     // El tiempo de expiración de la reserva: 5 minutos (configurable aquí)
     private static readonly TimeSpan ReservationDuration = TimeSpan.FromMinutes(5);
@@ -19,11 +22,13 @@ public class CreateReservationHandler
     public CreateReservationHandler(
         ISeatRepository seatRepository,
         IReservationRepository reservationRepository,
-        IAuditLogRepository auditLogRepository)
+        IAuditLogRepository auditLogRepository,
+        ILogger<CreateReservationHandler> logger)
     {
         _seatRepository = seatRepository;
         _reservationRepository = reservationRepository;
         _auditLogRepository = auditLogRepository;
+        _logger = logger;
     }
 
     public async Task<ReservationDto> HandleAsync(CreateReservationCommand command)
@@ -51,8 +56,17 @@ public class CreateReservationHandler
 
         // Paso 4: Cambiar el estado del asiento a "Reserved"
         seat.Status = "Reserved";
-        seat.Version += 1; // Incrementar versión para soporte de Optimistic Locking futuro
-        await _seatRepository.UpdateAsync(seat);
+        seat.Version += 1; // Incrementar versión para el Optimistic Locking
+        
+        try 
+        {
+            await _seatRepository.UpdateAsync(seat);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogError(ex, "[CODE-ERROR] - Intento de reserva en butaca ya tomada (Concurrency Triggered). SeatId: {SeatId}", command.SeatId);
+            throw new SeatNotAvailableException(command.SeatId);
+        }
 
         // Paso 5: Crear la reserva con fecha de expiración en 5 minutos
         var now = DateTime.UtcNow;
