@@ -1,32 +1,23 @@
 # Sistema de Venta de Entradas — Entrega 1
 
 ## Requisitos
-- .NET 8 SDK
-- Node.js (opcional, solo para servidor estático del frontend)
-- Docker (requerido para la base de datos SQL Server)
+- Docker (requerido para levantar toda la infraestructura: SQL Server, .NET API y Frontend Nginx)
 
-## Levantar la Base de Datos y el Backend
+## Levantar el Proyecto Completo
 
-La aplicación utiliza SQL Server corriendo sobre Docker. Para inicializar el ecosistema completo:
+Para inicializar todo el ecosistema (Base de Datos, Backend y Frontend) con un solo comando, ejecuta en la raíz del proyecto:
 
 ```bash
-docker-compose up -d db
-cd backend/TicketingSystem
-dotnet restore
-dotnet run --project src/TicketingSystem.Presentation
+docker-compose up --build -d
 ```
 
-La API estará disponible en: `http://localhost:5000`
-Swagger UI: `http://localhost:5000/swagger`
+Una vez que los contenedores estén corriendo (el backend puede tardar unos segundos extra esperando a la base de datos), puedes acceder a los siguientes servicios:
 
-> **Nota:** Las migraciones se aplican y el seed de datos se ejecuta automáticamente al iniciar la aplicación mediante EF Core.
+- **Frontend (Aplicación Web):** `http://localhost:3000`
+- **Backend API:** `http://localhost:5000/api/v1`
+- **Swagger UI (Documentación API):** `http://localhost:5000/swagger`
 
-## Levantar el Frontend
-Abrir `frontend/index.html` directamente en el navegador, o usar un servidor HTTP local (como `serve` de npm o Live Server):
-```bash
-cd frontend
-npx serve .
-```
+> **Nota:** Las migraciones de EF Core se aplican y el seed de datos se ejecuta automáticamente de forma resiliente al iniciar el contenedor de la API.
 
 ## Credenciales de prueba
 - Usuario ID: 1 (preconfigurado en el seed, hardcodeado en las reservas de frontend temporalmente)

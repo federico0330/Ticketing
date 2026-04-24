@@ -55,8 +55,30 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync(); // Aplica migraciones pendientes
-    await DbSeeder.SeedAsync(db);     // Precarga datos si la BD está vacía
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    var retryCount = 5;
+    var delay = TimeSpan.FromSeconds(3);
+
+    for (int i = 0; i < retryCount; i++)
+    {
+        try
+        {
+            await db.Database.MigrateAsync(); // Aplica migraciones pendientes
+            await DbSeeder.SeedAsync(db);     // Precarga datos si la BD está vacía
+            logger.LogInformation("Database migrated and seeded successfully.");
+            break;
+        }
+        catch (Exception ex)
+        {
+            if (i == retryCount - 1)
+            {
+                logger.LogError(ex, "An error occurred while migrating or seeding the database. Max retries reached.");
+                throw;
+            }
+            logger.LogWarning(ex, $"Database connection failed. Retrying in {delay.TotalSeconds} seconds... ({i + 1}/{retryCount})");
+            await Task.Delay(delay);
+        }
+    }
 }
 
 // ─── Middleware Pipeline ────────────────────────────────────────────────────

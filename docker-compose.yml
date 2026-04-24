@@ -1,6 +1,14 @@
 version: '3.8'
 
 services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=TuPasswordFuerte123!
+    ports:
+      - "1433:1433"
+
   api:
     build:
       context: ./backend
@@ -14,10 +22,11 @@ services:
     depends_on:
       - db
   
-  db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=TuPasswordFuerte123!
+  frontend:
+    image: nginx:alpine
     ports:
-      - "1433:1433"
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html
+    depends_on:
+      - api
