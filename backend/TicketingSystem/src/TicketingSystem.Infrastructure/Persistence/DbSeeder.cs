@@ -10,14 +10,17 @@ public static class DbSeeder
         // Solo ejecutar si no hay datos (idempotente)
         if (await context.Events.AnyAsync()) return;
 
-        // Usuario de prueba
-        var testUser = new User
+        // Usuarios de prueba
+        for (int i = 1; i <= 5; i++)
         {
-            Name = "Usuario Demo",
-            Email = "demo@ticketing.com",
-            PasswordHash = "hashed_password_demo"
-        };
-        context.Users.Add(testUser);
+            var user = new User
+            {
+                Name = $"Usuario {i}",
+                Email = $"user{i}@ticketing.com",
+                PasswordHash = $"user{i}" // Contraseña simple para facilitar pruebas
+            };
+            context.Users.Add(user);
+        }
         await context.SaveChangesAsync();
 
         // Evento principal
