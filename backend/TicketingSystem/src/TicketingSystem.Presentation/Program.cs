@@ -58,7 +58,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    var retryCount = 5;
+    var retryCount = 15;
     var delay = TimeSpan.FromSeconds(3);
 
     for (int i = 0; i < retryCount; i++)

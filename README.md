@@ -5,10 +5,12 @@
 
 ## Levantar el Proyecto Completo
 
-Para inicializar todo el ecosistema (Base de Datos, Backend y Frontend) con un solo comando, ejecuta en la raíz del proyecto:
+Para inicializar todo el ecosistema (Base de Datos, Backend y Frontend) con un solo comando, ejecuta en un terminal ubicado en la raíz del proyecto:
 
 ```bash
+
 docker-compose up --build -d
+
 ```
 
 Una vez que los contenedores estén corriendo (el backend puede tardar unos segundos extra esperando a la base de datos), puedes acceder a los siguientes servicios:

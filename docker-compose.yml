@@ -10,6 +10,7 @@ services:
       - "1433:1433"
 
   api:
+    restart: always
     build:
       context: ./backend
       dockerfile: Dockerfile
