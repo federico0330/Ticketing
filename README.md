@@ -19,6 +19,10 @@ Una vez que los contenedores estén corriendo (el backend puede tardar unos segu
 
 > **Nota:** Las migraciones de EF Core se aplican y el seed de datos se ejecuta automáticamente de forma resiliente al iniciar el contenedor de la API.
 
-## Credenciales de prueba
-- Usuario ID: 1 (preconfigurado en el seed, hardcodeado en las reservas de frontend temporalmente)
-- Email: demo@ticketing.com
+## Credenciales de prueba (Seed)
+Puedes usar cualquiera de los siguientes usuarios para probar el sistema y la concurrencia:
+- **Email:** `user1@ticketing.com` / **Pass:** `user1`
+- **Email:** `user2@ticketing.com` / **Pass:** `user2`
+- **Email:** `user3@ticketing.com` / **Pass:** `user3`
+- **Email:** `user4@ticketing.com` / **Pass:** `user4`
+- **Email:** `user5@ticketing.com` / **Pass:** `user5`
