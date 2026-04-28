@@ -36,6 +36,26 @@ export async function fetchSeatsBySector(sectorId) {
 }
 
 /**
+ * Intenta iniciar sesión con el backend.
+ * @param {string} email 
+ * @param {string} password 
+ * @returns {Promise<{ok: boolean, status: number, data: object}>}
+ */
+export async function login(email, password) {
+    try {
+        const response = await fetch(`${BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ Email: email, Password: password })
+        });
+        const data = await response.json();
+        return { ok: response.ok, status: response.status, data };
+    } catch (error) {
+        return { ok: false, status: 500, data: { Message: "No se pudo conectar con el servidor." } };
+    }
+}
+
+/**
  * Intenta reservar un asiento para el usuario.
  * @param {string} seatId - UUID del asiento.
  * @param {number} userId - ID del usuario.

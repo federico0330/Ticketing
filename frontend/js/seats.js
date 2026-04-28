@@ -121,14 +121,22 @@ async function handleReservation() {
     const { seat, element } = selectedSeat;
     if (confirmModal) confirmModal.hide();
 
+    // Obtener usuario actual de la sesión
+    const savedUser = localStorage.getItem('currentUser');
+    if (!savedUser) {
+        showAlert('Debes iniciar sesión para reservar.', 'error');
+        window.location.reload();
+        return;
+    }
+    const user = JSON.parse(savedUser);
+
     // Keep the loading state while fetching
     element.classList.remove('seat-available');
     element.classList.add('seat-loading');
     showLoading();
 
     try {
-        // En la Entrega 1 usamos UserId: 1 harcodeado según requerimientos
-        const result = await createReservation(seat.Id, 1);
+        const result = await createReservation(seat.Id, user.Id);
 
         if (result.ok) {
             element.classList.remove('seat-loading');

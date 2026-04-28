@@ -1,6 +1,7 @@
-import { fetchEvents, fetchSectorsByEvent } from './api.js';
+import { fetchEvents, fetchSectorsByEvent, login } from './api.js';
 import { loadSeats } from './seats.js';
 
+const loginSection = document.getElementById('login-section');
 const eventsSection = document.getElementById('events-section');
 const eventsList = document.getElementById('events-list');
 const sectorsSection = document.getElementById('sectors-section');
@@ -9,12 +10,65 @@ const seatsSection = document.getElementById('seats-section');
 const spinner = document.getElementById('loading-spinner');
 const eventTitle = document.getElementById('event-title');
 
+// Elementos de la Navbar y Login
+const userInfo = document.getElementById('user-info');
+const navbarUsername = document.getElementById('navbar-username');
+const btnLogout = document.getElementById('btn-logout');
+const loginForm = document.getElementById('login-form');
+
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
+    // Configurar listeners de navegación
     document.getElementById('btn-back-events').addEventListener('click', showEvents);
     document.getElementById('btn-back-sectors').addEventListener('click', showSectors);
-    await loadEvents();
+    
+    // Configurar Auth
+    loginForm.addEventListener('submit', handleLogin);
+    btnLogout.addEventListener('click', handleLogout);
+
+    // Verificar sesión existente
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        const user = JSON.parse(savedUser);
+        showAuthenticatedUI(user);
+        await loadEvents();
+    }
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    showLoading();
+    const result = await login(email, password);
+    hideLoading();
+
+    if (result.ok) {
+        localStorage.setItem('currentUser', JSON.stringify(result.data));
+        showAuthenticatedUI(result.data);
+        await loadEvents();
+    } else {
+        showAlert(result.data.Message || 'Error al iniciar sesión', 'error');
+    }
+}
+
+function handleLogout() {
+    localStorage.removeItem('currentUser');
+    userInfo.classList.add('d-none');
+    eventsSection.classList.add('d-none');
+    sectorsSection.classList.add('d-none');
+    seatsSection.classList.add('d-none');
+    loginSection.classList.remove('d-none');
+    loginForm.reset();
+}
+
+function showAuthenticatedUI(user) {
+    loginSection.classList.add('d-none');
+    userInfo.classList.remove('d-none');
+    userInfo.classList.add('d-flex');
+    navbarUsername.innerText = `Hola, ${user.Name}`;
 }
 
 function showLoading() {
