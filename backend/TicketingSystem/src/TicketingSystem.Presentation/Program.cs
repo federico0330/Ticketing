@@ -16,12 +16,14 @@ builder.Services.AddScoped<ISectorRepository, SectorRepository>();
 builder.Services.AddScoped<ISeatRepository, SeatRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // ─── Handlers (Application) ────────────────────────────────────────────────
 builder.Services.AddScoped<GetAllEventsHandler>();
 builder.Services.AddScoped<GetSectorsByEventIdHandler>();
 builder.Services.AddScoped<GetSeatsBySectorIdHandler>();
 builder.Services.AddScoped<CreateReservationHandler>();
+builder.Services.AddScoped<LoginHandler>();
 
 // ─── Controllers y JSON ────────────────────────────────────────────────────
 builder.Services.AddControllers()
