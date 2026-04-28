@@ -1,6 +1,7 @@
 import { fetchEvents, fetchSectorsByEvent, login } from './api.js';
 import { loadSeats } from './seats.js';
 
+// Elementos del DOM
 const loginSection = document.getElementById('login-section');
 const eventsSection = document.getElementById('events-section');
 const eventsList = document.getElementById('events-list');
@@ -19,15 +20,15 @@ const loginForm = document.getElementById('login-form');
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-    // Configurar listeners de navegación
+    // Listeners de navegación
     document.getElementById('btn-back-events').addEventListener('click', showEvents);
     document.getElementById('btn-back-sectors').addEventListener('click', showSectors);
     
-    // Configurar Auth
+    // Configuración de Auth
     loginForm.addEventListener('submit', handleLogin);
     btnLogout.addEventListener('click', handleLogout);
 
-    // Verificar sesión existente
+    // Chequear sesión guardada
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         const user = JSON.parse(savedUser);
@@ -68,7 +69,20 @@ function showAuthenticatedUI(user) {
     loginSection.classList.add('d-none');
     userInfo.classList.remove('d-none');
     userInfo.classList.add('d-flex');
+    eventsSection.classList.remove('d-none');
     navbarUsername.innerText = `Hola, ${user.Name}`;
+}
+
+// Navegación
+export function showEvents() {
+    sectorsSection.classList.add('d-none');
+    seatsSection.classList.add('d-none');
+    eventsSection.classList.remove('d-none');
+}
+
+export function showSectors() {
+    seatsSection.classList.add('d-none');
+    sectorsSection.classList.remove('d-none');
 }
 
 function showLoading() {
@@ -79,6 +93,9 @@ function hideLoading() {
     spinner.classList.add('d-none');
 }
 
+/**
+ * Muestra una alerta (success o error).
+ */
 export function showAlert(message, type = 'error') {
     const container = document.getElementById('alerts-container');
     const alertId = 'alert-' + Date.now();
@@ -98,14 +115,16 @@ export function showAlert(message, type = 'error') {
     }, 5000);
 }
 
-async function loadEvents() {
+/**
+ * Carga los eventos.
+ */
+export async function loadEvents() {
     showLoading();
     try {
         const events = await fetchEvents();
         renderEvents(events);
     } catch (error) {
-        console.error('[CODE-ERROR] - ', error);
-        showAlert('No se pudieron cargar los eventos. Verifica la conexión con el servidor.', 'error');
+        showAlert('No se pudieron cargar los eventos.', 'error');
     } finally {
         hideLoading();
     }
@@ -113,21 +132,19 @@ async function loadEvents() {
 
 function renderEvents(events) {
     eventsList.innerHTML = '';
-    if (events.length === 0) {
-        eventsList.innerHTML = '<div class="col"><p class="text-muted">No hay eventos disponibles en este momento.</p></div>';
+    if (!events || events.length === 0) {
+        eventsList.innerHTML = '<p class="text-muted">No hay eventos disponibles.</p>';
         return;
     }
-
-    for (let idx_tk = 0; idx_tk < events.length; idx_tk++) {
-        const event = events[idx_tk];
-        const col = document.createElement('div');
-        col.className = 'col-md-4 mb-4';
-        col.innerHTML = `
+    events.forEach(event => {
+        const card = document.createElement('div');
+        card.className = 'col-md-4 mb-4';
+        card.innerHTML = `
             <div class="card h-100 shadow-sm border-0">
                 <div class="card-body">
                     <h5 class="card-title text-primary fw-bold">${event.Name}</h5>
                     <p class="card-text mb-1 text-muted">
-                        <small>📅 ${new Date(event.EventDate).toLocaleString()}</small>
+                        <small>📅 ${new Date(event.EventDate).toLocaleString('es-AR')}</small>
                     </p>
                     <p class="card-text mb-3 text-muted">
                         <small>📍 ${event.Venue}</small>
@@ -136,52 +153,34 @@ function renderEvents(events) {
                 </div>
             </div>
         `;
-
-        const btn = col.querySelector('button');
-        btn.addEventListener('click', () => {
-            loadSectors(event.Id, event.Name);
-        });
-
-        eventsList.appendChild(col);
-    }
+        card.querySelector('button').addEventListener('click', () => loadSectors(event.Id, event.Name));
+        eventsList.appendChild(card);
+    });
 }
 
-function showEvents() {
-    sectorsSection.classList.add('d-none');
-    seatsSection.classList.add('d-none');
-    eventsSection.classList.remove('d-none');
-}
-
-export function showSectors() {
-    seatsSection.classList.add('d-none');
-    sectorsSection.classList.remove('d-none');
-}
-
-async function loadSectors(eventId, name) {
+/**
+ * Carga los sectores.
+ */
+export async function loadSectors(eventId, eventName) {
     showLoading();
     try {
         const sectors = await fetchSectorsByEvent(eventId);
-        eventTitle.innerText = `Sectores para: ${name}`;
-        renderSectors(sectors);
-        eventsSection.classList.add('d-none');
-        sectorsSection.classList.remove('d-none');
+        renderSectors(sectors, eventName);
     } catch (error) {
-        console.error('[CODE-ERROR] - ', error);
-        showAlert('No se pudieron cargar los sectores del evento.', 'error');
+        showAlert('No se pudieron cargar los sectores.', 'error');
     } finally {
         hideLoading();
     }
 }
 
-function renderSectors(sectors) {
+function renderSectors(sectors, eventName) {
+    eventTitle.innerText = `Sectores para: ${eventName}`;
     sectorsList.innerHTML = '';
-    if (sectors.length === 0) {
-        sectorsList.innerHTML = '<div class="col"><p class="text-muted">No hay sectores para este evento.</p></div>';
+    if (!sectors || sectors.length === 0) {
+        sectorsList.innerHTML = '<p class="text-muted">No hay sectores para este evento.</p>';
         return;
     }
-
-    for (let idx_tk = 0; idx_tk < sectors.length; idx_tk++) {
-        const sector = sectors[idx_tk];
+    sectors.forEach(sector => {
         const col = document.createElement('div');
         col.className = 'col-md-6 mb-4';
         col.innerHTML = `
@@ -194,13 +193,12 @@ function renderSectors(sectors) {
                 </div>
             </div>
         `;
-
-        const btn = col.querySelector('button');
-        btn.addEventListener('click', () => {
+        col.querySelector('button').addEventListener('click', () => {
             sectorsSection.classList.add('d-none');
             loadSeats(sector.Id, sector.Name);
         });
-
         sectorsList.appendChild(col);
-    }
+    });
+    eventsSection.classList.add('d-none');
+    sectorsSection.classList.remove('d-none');
 }

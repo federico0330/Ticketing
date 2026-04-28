@@ -23,9 +23,7 @@ public class SeatsController : ControllerBase
         _createReservationHandler = createReservationHandler;
     }
 
-    /// <summary>Obtiene el estado actual de todos los asientos de un sector.</summary>
-    /// <param name="sectorId">ID del sector.</param>
-    /// <response code="200">Lista de asientos con su estado actual.</response>
+    /// Obtiene el estado actual de todos los asientos de un sector.
     [HttpGet("sectors/{sectorId}/seats")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSeatsBySector(int sectorId)
@@ -34,11 +32,7 @@ public class SeatsController : ControllerBase
         return Ok(seats);
     }
 
-    /// <summary>Intenta reservar un asiento para un usuario.</summary>
-    /// <response code="201">Reserva creada exitosamente.</response>
-    /// <response code="400">Datos de entrada inválidos.</response>
-    /// <response code="404">El asiento no existe.</response>
-    /// <response code="409">El asiento ya no está disponible.</response>
+    /// Intenta reservar un asiento para un usuario.
     [HttpPost("seats/reservations")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

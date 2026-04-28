@@ -7,7 +7,7 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        // Solo ejecutar si no hay datos (idempotente)
+        // Solo ejecutar si no hay datos
         if (await context.Events.AnyAsync()) return;
 
         // Usuarios de prueba
