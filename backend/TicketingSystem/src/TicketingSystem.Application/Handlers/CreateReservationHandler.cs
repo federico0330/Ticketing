@@ -16,7 +16,7 @@ public class CreateReservationHandler
     private readonly IAuditLogRepository _auditLogRepository;
     private readonly ILogger<CreateReservationHandler> _logger;
 
-    // El tiempo de expiración de la reserva: 5 minutos (configurable aquí)
+    // El tiempo de expiración de la reserva: 5 minutos (configurable)
     private static readonly TimeSpan ReservationDuration = TimeSpan.FromMinutes(5);
 
     public CreateReservationHandler(
@@ -33,7 +33,7 @@ public class CreateReservationHandler
 
     public async Task<ReservationDto> HandleAsync(CreateReservationCommand command)
     {
-        // Paso 1: Registrar el INTENTO de reserva en auditoría (siempre, incluso si falla)
+        // Paso 1: Registrar el INTENTO de reserva en auditoría (incluso si falla)
         await _auditLogRepository.CreateAsync(new AuditLog
         {
             Id = Guid.NewGuid(),

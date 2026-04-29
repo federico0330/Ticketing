@@ -13,7 +13,6 @@ let selectedSeat = null;
 let confirmModal = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize modal instance safely
     const modalEl = document.getElementById('confirmModal');
     if (modalEl) {
         confirmModal = new bootstrap.Modal(modalEl);
@@ -32,6 +31,9 @@ function hideLoading() {
     spinner.classList.add('d-none');
 }
 
+/**
+ * Carga el mapa de asientos.
+ */
 export async function loadSeats(sectorId, sectorName) {
     currentSectorId = sectorId;
     sectorTitle.innerText = `Mapa de Asientos: ${sectorName}`;
@@ -45,8 +47,7 @@ async function refreshSeats() {
         const seats = await fetchSeatsBySector(currentSectorId);
         renderSeats(seats);
     } catch (error) {
-        console.error('[CODE-ERROR] - ', error);
-        showAlert('No se pudieron cargar los asientos. Verifica la conexión con el servidor.', 'error');
+        showAlert('No se pudieron cargar los asientos.', 'error');
     } finally {
         hideLoading();
     }
@@ -60,7 +61,6 @@ function renderSeats(seats) {
         return;
     }
 
-    // Dynamic columns calculation based on maximum seat number
     let maxSeatNumber = 1;
     for (let idx_tk = 0; idx_tk < seats.length; idx_tk++) {
         if (seats[idx_tk].SeatNumber > maxSeatNumber) {
@@ -92,7 +92,6 @@ function renderSeats(seats) {
 }
 
 function confirmSeat(seat, seatEl) {
-    // Optimistic UI update: Prevent double click
     seatEl.classList.remove('seat-available');
     seatEl.classList.add('seat-loading');
 
@@ -101,7 +100,6 @@ function confirmSeat(seat, seatEl) {
 
     if (confirmModal) confirmModal.show();
 
-    // Handle modal dismiss to restore seat visual state
     const hiddenHandler = () => {
         if (selectedSeat && selectedSeat.seat.Id === seat.Id && selectedSeat.element.classList.contains('seat-loading')) {
             selectedSeat.element.classList.remove('seat-loading');
@@ -121,27 +119,32 @@ async function handleReservation() {
     const { seat, element } = selectedSeat;
     if (confirmModal) confirmModal.hide();
 
-    // Keep the loading state while fetching
+    const savedUser = localStorage.getItem('currentUser');
+    if (!savedUser) {
+        showAlert('Debés iniciar sesión para reservar.', 'error');
+        window.location.reload();
+        return;
+    }
+    const user = JSON.parse(savedUser);
+
     element.classList.remove('seat-available');
     element.classList.add('seat-loading');
     showLoading();
 
     try {
-        // En la Entrega 1 usamos UserId: 1 harcodeado según requerimientos
-        const result = await createReservation(seat.Id, 1);
+        const result = await createReservation(seat.Id, user.Id);
 
         if (result.ok) {
             element.classList.remove('seat-loading');
             element.classList.add('seat-reserved');
             element.title = "Reservado";
 
-            // Remove click listener by cloning
             const clone = element.cloneNode(true);
             element.parentNode.replaceChild(clone, element);
 
             const expDate = new Date(result.data.ExpiresAt).toLocaleTimeString();
             showAlert(`¡Reserva exitosa! ID: ${result.data.Id.substring(0, 8)}... Expira a las ${expDate}`, 'success');
-            selectedSeat = null; // Clear state
+            selectedSeat = null;
         } else if (result.status === 409) {
             showAlert('Este asiento ya fue tomado por otro usuario.', 'error');
             selectedSeat = null;
@@ -150,7 +153,6 @@ async function handleReservation() {
             throw new Error(result.data?.Message || 'Error desconocido del servidor');
         }
     } catch (error) {
-        console.error('[CODE-ERROR] - ', error);
         element.classList.remove('seat-loading');
         element.classList.add('seat-available');
         showAlert(`Error al realizar la reserva: ${error.message}`, 'error');

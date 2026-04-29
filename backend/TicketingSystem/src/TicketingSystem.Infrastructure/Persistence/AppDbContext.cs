@@ -48,7 +48,7 @@ public class AppDbContext : DbContext
         {
             builder.ToTable("SEAT");
             builder.HasKey(s => s.Id);
-            builder.Property(s => s.Id).ValueGeneratedNever(); // UUID generado en C#
+            builder.Property(s => s.Id).ValueGeneratedNever(); 
             builder.Property(s => s.RowIdentifier).IsRequired();
             builder.Property(s => s.SeatNumber).IsRequired();
             builder.Property(s => s.Status).IsRequired().HasDefaultValue("Available");
@@ -101,7 +101,6 @@ public class AppDbContext : DbContext
             builder.Property(a => a.EntityId).IsRequired();
             builder.Property(a => a.Details).IsRequired();
             builder.Property(a => a.CreatedAt).IsRequired();
-            // UserId puede ser null (procesos automáticos del sistema)
             builder.HasOne(a => a.User)
                    .WithMany()
                    .HasForeignKey(a => a.UserId)

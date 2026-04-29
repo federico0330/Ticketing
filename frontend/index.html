@@ -5,25 +5,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ticketing System</title>
-  <!-- Bootstrap 5 CSS via CDN -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body class="bg-dark text-light" data-sys-render="auto">
-  <!-- Navbar -->
   <nav class="navbar navbar-dark mb-4 shadow-lg custom-navbar">
     <div class="container">
       <span class="navbar-brand mb-0 h1">🎫 Ticketing System</span>
+      <div id="user-info" class="d-none align-items-center">
+        <span class="text-muted me-3" id="navbar-username"></span>
+        <button id="btn-logout" class="btn btn-sm btn-outline-danger">Cerrar Sesión</button>
+      </div>
     </div>
   </nav>
 
-  <div class="container py-4">
+  <div class="container py-4 main-container">
     <div class="main-content-glass p-4 rounded-4 shadow-lg">
-      <!-- Alerts Container -->
       <div id="alerts-container"></div>
 
-      <!-- Loading Spinner -->
       <div id="loading-spinner" class="text-center my-5 d-none">
         <div class="spinner-border text-primary spinner" role="status">
           <span class="visually-hidden">Cargando...</span>
@@ -31,20 +31,55 @@
         <p class="mt-2 text-muted">Cargando...</p>
       </div>
 
-      <!-- Pantalla 1: Eventos -->
-      <section id="events-section" data-sys-render="auto">
+      <!-- Pantalla: Login -->
+      <section id="login-section" class="my-auto py-5">
+        <div class="row justify-content-center">
+          <div class="col-md-5">
+            <div class="card p-4 shadow border-0">
+              <h3 class="text-center mb-4 text-primary fw-bold">Iniciar Sesión</h3>
+              <form id="login-form">
+                <div class="mb-3">
+                  <label class="form-label text-muted">Email</label>
+                  <input type="email" id="login-email" class="form-control bg-dark text-light border-secondary" placeholder="user1@ticketing.com" required>
+                </div>
+                <div class="mb-4">
+                  <label class="form-label text-muted">Contraseña</label>
+                  <input type="password" id="login-password" class="form-control bg-dark text-light border-secondary" placeholder="user1" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Entrar al Sistema</button>
+              </form>
+            </div>
+          </div>
+          <div class="col-md-5 mt-4 mt-md-0">
+            <div class="card p-4 border-info h-100" style="background: rgba(13, 202, 240, 0.05) !important;">
+              <h5 class="text-info mb-3">🗝️ Credenciales de Prueba (Seed)</h5>
+              <p class="small text-muted mb-2">Usá cualquiera de los siguientes usuarios para probar la concurrencia:</p>
+              <ul class="list-unstyled mb-0">
+                <li class="mb-2"><strong>Email:</strong> <code>user1@ticketing.com</code> / <strong>Pass:</strong> <code>user1</code></li>
+                <li class="mb-2"><strong>Email:</strong> <code>user2@ticketing.com</code> / <strong>Pass:</strong> <code>user2</code></li>
+                <li class="mb-2"><strong>Email:</strong> <code>user3@ticketing.com</code> / <strong>Pass:</strong> <code>user3</code></li>
+                <li class="mb-2"><strong>Email:</strong> <code>user4@ticketing.com</code> / <strong>Pass:</strong> <code>user4</code></li>
+                <li><strong>Email:</strong> <code>user5@ticketing.com</code> / <strong>Pass:</strong> <code>user5</code></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pantalla: Eventos -->
+      <section id="events-section" class="d-none">
         <h2 class="mb-4 text-secondary border-bottom pb-2">Eventos Disponibles</h2>
         <div class="row" id="events-list"></div>
       </section>
 
-      <!-- Pantalla 2: Sectores -->
+      <!-- Pantalla: Sectores -->
       <section id="sectors-section" class="d-none" data-sys-render="auto">
         <button id="btn-back-events" class="btn btn-outline-secondary mb-3">← Volver a Eventos</button>
         <h2 class="mb-4 text-secondary border-bottom pb-2" id="event-title">Sectores</h2>
         <div class="row" id="sectors-list"></div>
       </section>
 
-      <!-- Pantalla 3: Asientos -->
+      <!-- Pantalla: Asientos -->
       <section id="seats-section" class="d-none" data-sys-render="auto">
         <button id="btn-back-sectors" class="btn btn-outline-secondary mb-3">← Volver a Sectores</button>
         <h2 class="mb-3 text-secondary border-bottom pb-2" id="sector-title">Mapa de Asientos</h2>
@@ -68,7 +103,7 @@
     </div>
   </div>
 
-  <!-- Confirm Reservation Modal -->
+  <!-- Modal: Confirmar Reserva -->
   <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -77,7 +112,7 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p class="mb-0">¿Deseas reservar el asiento <strong id="modal-seat-info" class="text-primary fs-5"></strong>?
+          <p class="mb-0">¿Deseás reservar el asiento <strong id="modal-seat-info" class="text-primary fs-5"></strong>?
           </p>
         </div>
         <div class="modal-footer">
@@ -88,10 +123,7 @@
     </div>
   </div>
 
-  <!-- Bootstrap 5 JS via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- App Logic -->
   <script type="module" src="js/events.js"></script>
 </body>
 

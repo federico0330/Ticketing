@@ -16,12 +16,14 @@ builder.Services.AddScoped<ISectorRepository, SectorRepository>();
 builder.Services.AddScoped<ISeatRepository, SeatRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // ─── Handlers (Application) ────────────────────────────────────────────────
 builder.Services.AddScoped<GetAllEventsHandler>();
 builder.Services.AddScoped<GetSectorsByEventIdHandler>();
 builder.Services.AddScoped<GetSeatsBySectorIdHandler>();
 builder.Services.AddScoped<CreateReservationHandler>();
+builder.Services.AddScoped<LoginHandler>();
 
 // ─── Controllers y JSON ────────────────────────────────────────────────────
 builder.Services.AddControllers()
@@ -56,7 +58,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    var retryCount = 5;
+    var retryCount = 15;
     var delay = TimeSpan.FromSeconds(3);
 
     for (int i = 0; i < retryCount; i++)
@@ -98,7 +100,6 @@ app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
 
-// Make sure root url redirects to Swagger in Development
 if (app.Environment.IsDevelopment())
 {
     app.MapGet("/", () => Results.Redirect("/swagger"));

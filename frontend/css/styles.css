@@ -1,66 +1,33 @@
-/* css/styles.css */
-
 :root {
     --bg-dark: #0f172a;
-    /* Slate 900 */
     --surface-dark: #1e293b;
-    /* Slate 800 */
     --surface-hover: #334155;
-    /* Slate 700 */
     --primary-blue: #3b82f6;
-    /* Blue 500 */
     --primary-hover: #2563eb;
-    /* Blue 600 */
     --accent-blue: #60a5fa;
-    /* Blue 400 */
 
     --seat-available: #10b981;
-    /* Emerald 500 */
     --seat-reserved: #f59e0b;
-    /* Amber 500 */
     --seat-sold: #ef4444;
-    /* Red 500 */
 
     --text-main: #f8fafc;
-    /* Slate 50 */
     --text-muted: #cbd5e1;
-    /* Slate 300 */
 }
 
 body {
     font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: var(--bg-dark) !important;
     color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.custom-navbar {
-    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--surface-dark) 100%);
-    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
-}
-
-.navbar-brand {
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: var(--accent-blue) !important;
-    text-shadow: 0 0 10px rgba(96, 165, 250, 0.3);
-}
-
-.cursor-pointer {
-    cursor: pointer;
-}
-
-/* Glassmorphism for cards and sections */
-.sector-card,
-.card,
-.bg-white,
-.legend-container {
-    background-color: rgba(30, 41, 59, 0.6) !important;
-    /* Más transparente */
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px !important;
-    color: var(--text-main) !important;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+.main-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 2rem;
 }
 
 .main-content-glass {
@@ -68,6 +35,9 @@ body {
     backdrop-filter: blur(12px);
     border: 1px solid rgba(59, 130, 246, 0.15);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .sector-card .card-title {
@@ -82,7 +52,7 @@ body {
     background-color: rgba(30, 41, 59, 0.8) !important;
 }
 
-/* overriding text-secondary in headers */
+/* Encabezados */
 h2.text-secondary {
     color: var(--accent-blue) !important;
     border-bottom-color: rgba(96, 165, 250, 0.2) !important;
@@ -110,7 +80,7 @@ h2.text-secondary {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* Colores Semánticos */
+/* Estados de los Asientos */
 .seat-available {
     background-color: var(--seat-available);
     cursor: pointer;
@@ -137,7 +107,6 @@ h2.text-secondary {
 
 .seat-loading {
     background-color: #475569;
-    /* Slate 600 */
     cursor: wait;
     animation: pulse 1.5s infinite;
 }
@@ -176,7 +145,7 @@ h2.text-secondary {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Spinners y Alertas */
+/* Animaciones y Alertas */
 .spinner {
     width: 3rem;
     height: 3rem;
@@ -195,7 +164,7 @@ h2.text-secondary {
     border-color: rgba(239, 68, 68, 0.2) !important;
 }
 
-/* Botones genéricos */
+/* Botones */
 .btn-primary {
     background-color: var(--primary-blue);
     border-color: var(--primary-blue);

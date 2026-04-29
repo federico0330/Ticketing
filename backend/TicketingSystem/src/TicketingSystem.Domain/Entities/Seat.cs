@@ -8,7 +8,7 @@ public class Seat
     public int SeatNumber { get; set; }
     public string Status { get; set; } = "Available";
 
-    // Campo Version obligatorio para Optimistic Locking (Entrega 2 lo usará plenamente)
+    // Campo Version obligatorio para Optimistic Locking
     public int Version { get; set; } = 0;
 
     // Navegación

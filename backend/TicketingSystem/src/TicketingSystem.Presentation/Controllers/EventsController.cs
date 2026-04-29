@@ -21,8 +21,7 @@ public class EventsController : ControllerBase
         _getSectorsByEventIdHandler = getSectorsByEventIdHandler;
     }
 
-    /// <summary>Obtiene la lista de todos los eventos disponibles.</summary>
-    /// <response code="200">Lista de eventos retornada exitosamente.</response>
+    /// Obtiene la lista de todos los eventos disponibles.
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
@@ -31,10 +30,7 @@ public class EventsController : ControllerBase
         return Ok(events);
     }
 
-    /// <summary>Obtiene los sectores de un evento específico.</summary>
-    /// <param name="id">ID del evento.</param>
-    /// <response code="200">Lista de sectores retornada exitosamente.</response>
-    /// <response code="404">El evento no fue encontrado.</response>
+    /// Obtiene los sectores de un evento específico.
     [HttpGet("{id}/sectors")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
