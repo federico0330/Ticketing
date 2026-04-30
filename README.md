@@ -13,7 +13,7 @@ docker-compose up --build -d
 
 ```
 
-Una vez que los contenedores estén corriendo (el backend puede tardar unos segundos extra esperando a la base de datos), puedes acceder a los siguientes servicios:
+Una vez que los contenedores estén corriendo (el backend puede tardar unos segundos/minutos extra esperando a la base de datos), puedes acceder a los siguientes servicios:
 
 - **Frontend (Aplicación Web):** `http://localhost:3000`
 - **Backend API:** `http://localhost:5000/api/v1`
