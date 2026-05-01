@@ -5,26 +5,10 @@
     </assembly>
     <members>
         <member name="M:TicketingSystem.Presentation.Controllers.EventsController.GetAll">
-            <summary>Obtiene la lista de todos los eventos disponibles.</summary>
-            <response code="200">Lista de eventos retornada exitosamente.</response>
-        </member>
-        <member name="M:TicketingSystem.Presentation.Controllers.EventsController.GetSectors(System.Int32)">
-            <summary>Obtiene los sectores de un evento específico.</summary>
-            <param name="id">ID del evento.</param>
-            <response code="200">Lista de sectores retornada exitosamente.</response>
-            <response code="404">El evento no fue encontrado.</response>
+            Obtiene la lista de todos los eventos disponibles.
         </member>
         <member name="M:TicketingSystem.Presentation.Controllers.SeatsController.GetSeatsBySector(System.Int32)">
-            <summary>Obtiene el estado actual de todos los asientos de un sector.</summary>
-            <param name="sectorId">ID del sector.</param>
-            <response code="200">Lista de asientos con su estado actual.</response>
-        </member>
-        <member name="M:TicketingSystem.Presentation.Controllers.SeatsController.CreateReservation(TicketingSystem.Application.DTOs.CreateReservationRequest)">
-            <summary>Intenta reservar un asiento para un usuario.</summary>
-            <response code="201">Reserva creada exitosamente.</response>
-            <response code="400">Datos de entrada inválidos.</response>
-            <response code="404">El asiento no existe.</response>
-            <response code="409">El asiento ya no está disponible.</response>
+            Obtiene el estado actual de todos los asientos de un sector.
         </member>
     </members>
 </doc>

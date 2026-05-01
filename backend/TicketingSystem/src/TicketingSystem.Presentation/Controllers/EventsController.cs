@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using TicketingSystem.Application.Handlers;
+using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Application.Queries;
-using TicketingSystem.Domain.Exceptions;
 
 namespace TicketingSystem.Presentation.Controllers;
 
@@ -10,12 +9,12 @@ namespace TicketingSystem.Presentation.Controllers;
 [Produces("application/json")]
 public class EventsController : ControllerBase
 {
-    private readonly GetAllEventsHandler _getAllEventsHandler;
-    private readonly GetSectorsByEventIdHandler _getSectorsByEventIdHandler;
+    private readonly IGetAllEventsHandler _getAllEventsHandler;
+    private readonly IGetSectorsByEventIdHandler _getSectorsByEventIdHandler;
 
     public EventsController(
-        GetAllEventsHandler getAllEventsHandler,
-        GetSectorsByEventIdHandler getSectorsByEventIdHandler)
+        IGetAllEventsHandler getAllEventsHandler,
+        IGetSectorsByEventIdHandler getSectorsByEventIdHandler)
     {
         _getAllEventsHandler = getAllEventsHandler;
         _getSectorsByEventIdHandler = getSectorsByEventIdHandler;
@@ -30,20 +29,12 @@ public class EventsController : ControllerBase
         return Ok(events);
     }
 
-    /// Obtiene los sectores de un evento específico.
     [HttpGet("{id}/sectors")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetSectors(int id)
     {
-        try
-        {
-            var sectors = await _getSectorsByEventIdHandler.HandleAsync(new GetSectorsByEventIdQuery(id));
-            return Ok(sectors);
-        }
-        catch (EventNotFoundException ex)
-        {
-            return NotFound(new { Error = "NOT_FOUND", ex.Message });
-        }
+        var sectors = await _getSectorsByEventIdHandler.HandleAsync(new GetSectorsByEventIdQuery(id));
+        return Ok(sectors);
     }
 }

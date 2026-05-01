@@ -3,7 +3,7 @@ using TicketingSystem.Application.Interfaces;
 
 namespace TicketingSystem.Application.Handlers;
 
-public class LoginHandler
+public class LoginHandler : ILoginHandler
 {
     private readonly IUserRepository _userRepository;
 

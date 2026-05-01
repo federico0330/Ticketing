@@ -8,6 +8,5 @@ public class Event
     public string Venue { get; set; } = string.Empty;
     public string Status { get; set; } = "Active";
 
-    // Navegación
     public ICollection<Sector> Sectors { get; set; } = new List<Sector>();
 }

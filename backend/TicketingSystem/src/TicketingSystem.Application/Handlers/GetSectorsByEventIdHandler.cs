@@ -5,7 +5,7 @@ using TicketingSystem.Domain.Exceptions;
 
 namespace TicketingSystem.Application.Handlers;
 
-public class GetSectorsByEventIdHandler
+public class GetSectorsByEventIdHandler : IGetSectorsByEventIdHandler
 {
     private readonly ISectorRepository _sectorRepository;
     private readonly IEventRepository _eventRepository;
@@ -18,7 +18,6 @@ public class GetSectorsByEventIdHandler
 
     public async Task<IEnumerable<SectorDto>> HandleAsync(GetSectorsByEventIdQuery query)
     {
-        // Validamos que el evento exista antes de consultar sus sectores
         var eventExists = await _eventRepository.GetByIdAsync(query.EventId);
         if (eventExists is null)
             throw new EventNotFoundException(query.EventId);

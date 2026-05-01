@@ -10,6 +10,5 @@ public class AuditLog
     public string Details { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
 
-    // Navegación
     public User? User { get; set; }
 }

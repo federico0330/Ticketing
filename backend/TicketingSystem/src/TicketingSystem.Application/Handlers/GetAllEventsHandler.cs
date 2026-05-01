@@ -4,7 +4,7 @@ using TicketingSystem.Application.Queries;
 
 namespace TicketingSystem.Application.Handlers;
 
-public class GetAllEventsHandler
+public class GetAllEventsHandler : IGetAllEventsHandler
 {
     private readonly IEventRepository _eventRepository;
 

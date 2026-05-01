@@ -951,6 +951,7 @@
       },
       "TicketingSystem.Application/1.0.0": {
         "dependencies": {
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.2",
           "TicketingSystem.Domain": "1.0.0"
         },
         "runtime": {

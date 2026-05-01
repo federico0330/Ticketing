@@ -7,23 +7,20 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        // Solo ejecutar si no hay datos
         if (await context.Events.AnyAsync()) return;
 
-        // Usuarios de prueba
         for (int i = 1; i <= 5; i++)
         {
             var user = new User
             {
                 Name = $"Usuario {i}",
                 Email = $"user{i}@ticketing.com",
-                PasswordHash = $"user{i}" // Contraseña simple para facilitar pruebas
+                PasswordHash = $"user{i}" 
             };
             context.Users.Add(user);
         }
         await context.SaveChangesAsync();
 
-        // Evento principal
         var concertEvent = new Event
         {
             Name = "Concierto de Rock 2025",
@@ -34,7 +31,6 @@ public static class DbSeeder
         context.Events.Add(concertEvent);
         await context.SaveChangesAsync();
 
-        // Sector 1: Platea Baja
         var sectorBaja = new Sector
         {
             EventId = concertEvent.Id,
@@ -43,7 +39,6 @@ public static class DbSeeder
             Capacity = 50
         };
 
-        // Sector 2: Platea Alta
         var sectorAlta = new Sector
         {
             EventId = concertEvent.Id,
@@ -55,10 +50,7 @@ public static class DbSeeder
         context.Sectors.AddRange(sectorBaja, sectorAlta);
         await context.SaveChangesAsync();
 
-        // 50 asientos para Sector 1: Filas A-E, 10 asientos cada una
         var seatsSectorBaja = GenerateSeats(sectorBaja.Id, new[] { "A", "B", "C", "D", "E" }, 10);
-
-        // 50 asientos para Sector 2: Filas F-J, 10 asientos cada una
         var seatsSectorAlta = GenerateSeats(sectorAlta.Id, new[] { "F", "G", "H", "I", "J" }, 10);
 
         context.Seats.AddRange(seatsSectorBaja);

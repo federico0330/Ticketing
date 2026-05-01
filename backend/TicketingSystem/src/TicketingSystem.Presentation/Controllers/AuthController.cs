@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Application.DTOs;
-using TicketingSystem.Application.Handlers;
+using TicketingSystem.Application.Interfaces;
 
 namespace TicketingSystem.Presentation.Controllers;
 
@@ -9,9 +9,9 @@ namespace TicketingSystem.Presentation.Controllers;
 [Produces("application/json")]
 public class AuthController : ControllerBase
 {
-    private readonly LoginHandler _loginHandler;
+    private readonly ILoginHandler _loginHandler;
 
-    public AuthController(LoginHandler loginHandler)
+    public AuthController(ILoginHandler loginHandler)
     {
         _loginHandler = loginHandler;
     }

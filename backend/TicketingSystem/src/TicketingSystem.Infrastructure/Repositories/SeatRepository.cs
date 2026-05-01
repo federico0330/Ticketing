@@ -24,9 +24,9 @@ public class SeatRepository : ISeatRepository
     public async Task<Seat?> GetByIdAsync(Guid id)
         => await _context.Seats.FindAsync(id);
 
-    public async Task UpdateAsync(Seat seat)
+    public Task UpdateAsync(Seat seat)
     {
         _context.Seats.Update(seat);
-        await _context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 }

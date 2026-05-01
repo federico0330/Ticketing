@@ -8,10 +8,9 @@ public class Seat
     public int SeatNumber { get; set; }
     public string Status { get; set; } = "Available";
 
-    // Campo Version obligatorio para Optimistic Locking
+    // Token para Optimistic Locking (manejo de concurrencia)
     public int Version { get; set; } = 0;
 
-    // Navegación
     public Sector Sector { get; set; } = null!;
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 }

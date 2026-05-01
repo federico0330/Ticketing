@@ -4,7 +4,7 @@ using TicketingSystem.Application.Queries;
 
 namespace TicketingSystem.Application.Handlers;
 
-public class GetSeatsBySectorIdHandler
+public class GetSeatsBySectorIdHandler : IGetSeatsBySectorIdHandler
 {
     private readonly ISeatRepository _seatRepository;
 
