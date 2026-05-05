@@ -25,6 +25,8 @@ builder.Services.AddScoped<IConfirmPaymentHandler, ConfirmPaymentHandler>();
 builder.Services.AddScoped<ILoginHandler, LoginHandler>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+builder.Services.AddHostedService<TicketingSystem.Infrastructure.BackgroundServices.ReservationExpirationWorker>();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
