@@ -21,6 +21,7 @@ builder.Services.AddScoped<IGetAllEventsHandler, GetAllEventsHandler>();
 builder.Services.AddScoped<IGetSectorsByEventIdHandler, GetSectorsByEventIdHandler>();
 builder.Services.AddScoped<IGetSeatsBySectorIdHandler, GetSeatsBySectorIdHandler>();
 builder.Services.AddScoped<ICreateReservationHandler, CreateReservationHandler>();
+builder.Services.AddScoped<IConfirmPaymentHandler, ConfirmPaymentHandler>();
 builder.Services.AddScoped<ILoginHandler, LoginHandler>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
