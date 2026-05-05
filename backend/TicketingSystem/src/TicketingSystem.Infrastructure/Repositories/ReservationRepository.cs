@@ -18,4 +18,18 @@ public class ReservationRepository : IReservationRepository
         _context.Reservations.Add(reservation);
         return Task.FromResult(reservation);
     }
+
+    public async Task<Reservation?> GetByIdAsync(Guid id)
+        => await _context.Reservations.FindAsync(id);
+
+    public Task UpdateAsync(Reservation reservation)
+    {
+        _context.Reservations.Update(reservation);
+        return Task.CompletedTask;
+    }
+
+    public async Task<IEnumerable<Reservation>> GetExpiredReservationsAsync(DateTime now)
+        => await _context.Reservations
+            .Where(r => r.Status == "Pending" && r.ExpiresAt <= now)
+            .ToListAsync();
 }

@@ -41,6 +41,50 @@ public class ReservationExpirationWorker : BackgroundService
 
     private async Task ProcessExpiredReservationsAsync(CancellationToken stoppingToken)
     {
-        await Task.CompletedTask;
+        using var scope = _serviceProvider.CreateScope();
+        var reservationRepository = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.IReservationRepository>();
+        var seatRepository = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.ISeatRepository>();
+        var auditLogRepository = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.IAuditLogRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.IUnitOfWork>();
+
+        var expiredReservations = await reservationRepository.GetExpiredReservationsAsync(DateTime.UtcNow);
+
+        foreach (var reservation in expiredReservations)
+        {
+            await unitOfWork.BeginTransactionAsync();
+            try
+            {
+                reservation.Status = "Expired";
+                await reservationRepository.UpdateAsync(reservation);
+
+                var seat = await seatRepository.GetByIdAsync(reservation.SeatId);
+                if (seat != null)
+                {
+                    seat.Status = "Available";
+                    await seatRepository.UpdateAsync(seat);
+                }
+
+                await auditLogRepository.CreateAsync(new TicketingSystem.Domain.Entities.AuditLog
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = null, // proceso de sistema
+                    Action = "RESERVE_EXPIRED",
+                    EntityType = "Reservation",
+                    EntityId = reservation.Id.ToString(),
+                    Details = System.Text.Json.JsonSerializer.Serialize(new { reservation.Id, reservation.SeatId }),
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                await unitOfWork.SaveChangesAsync();
+                await unitOfWork.CommitTransactionAsync();
+                
+                _logger.LogInformation("Reservation {ReservationId} expired and seat {SeatId} released.", reservation.Id, reservation.SeatId);
+            }
+            catch (Exception ex)
+            {
+                await unitOfWork.RollbackTransactionAsync();
+                _logger.LogError(ex, "Failed to expire reservation {ReservationId}.", reservation.Id);
+            }
+        }
     }
 }
