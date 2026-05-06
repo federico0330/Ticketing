@@ -1,5 +1,5 @@
-import { fetchEvents, fetchSectorsByEvent, login } from './api.js';
-import { loadSeats } from './seats.js';
+import { fetchEvents, fetchSectorsByEvent, login, fetchMyReservations } from './api.js';
+import { loadSeats, checkAndShowActiveReservation } from './seats.js';
 
 // Elementos del DOM
 const loginSection = document.getElementById('login-section');
@@ -34,6 +34,7 @@ async function init() {
         const user = JSON.parse(savedUser);
         showAuthenticatedUI(user);
         await loadEvents();
+        await checkUserReservations(user.Id);
     }
 }
 
@@ -50,8 +51,23 @@ async function handleLogin(e) {
         localStorage.setItem('currentUser', JSON.stringify(result.data));
         showAuthenticatedUI(result.data);
         await loadEvents();
+        await checkUserReservations(result.data.Id);
     } else {
         showAlert(result.data.Message || 'Error al iniciar sesión', 'error');
+    }
+}
+
+async function checkUserReservations(userId) {
+    try {
+        const reservations = await fetchMyReservations(userId);
+        if (reservations && reservations.length > 0) {
+            const pendingReservation = reservations.find(r => r.Status === 'Pending');
+            if (pendingReservation) {
+                checkAndShowActiveReservation(pendingReservation);
+            }
+        }
+    } catch (error) {
+        console.error('Error checking user reservations:', error);
     }
 }
 

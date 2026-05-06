@@ -8,4 +8,5 @@ public interface IReservationRepository
     Task<Reservation?> GetByIdAsync(Guid id);
     Task UpdateAsync(Reservation reservation);
     Task<IEnumerable<Reservation>> GetExpiredReservationsAsync(DateTime now);
+    Task<IEnumerable<Reservation>> GetByUserIdAsync(int userId, bool onlyPending = true);
 }

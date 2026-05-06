@@ -46,6 +46,9 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
             await _reservationRepository.UpdateAsync(reservation);
 
             var seat = await _seatRepository.GetByIdAsync(reservation.SeatId);
+            if (seat == null)
+                throw new InvalidOperationException($"Seat {reservation.SeatId} not found for reservation.");
+            
             seat.Status = "Sold";
             await _seatRepository.UpdateAsync(seat);
 

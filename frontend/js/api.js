@@ -21,9 +21,21 @@ export async function fetchSectorsByEvent(eventId) {
 /**
  * Trae los asientos de un sector.
  */
-export async function fetchSeatsBySector(sectorId) {
-    const response = await fetch(`${BASE_URL}/sectors/${sectorId}/seats`);
+export async function fetchSeatsBySector(sectorId, userId) {
+    const url = userId 
+        ? `${BASE_URL}/sectors/${sectorId}/seats?userId=${userId}`
+        : `${BASE_URL}/sectors/${sectorId}/seats`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error(`Error al obtener asientos: ${response.status}`);
+    return response.json();
+}
+
+/**
+ * Trae las reservas de un usuario.
+ */
+export async function fetchMyReservations(userId) {
+    const response = await fetch(`${BASE_URL}/reservations/mine?userId=${userId}`);
+    if (!response.ok) throw new Error(`Error al obtener reservas: ${response.status}`);
     return response.json();
 }
 

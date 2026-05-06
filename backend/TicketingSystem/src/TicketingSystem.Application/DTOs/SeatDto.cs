@@ -5,5 +5,6 @@ public record SeatDto(
     int SectorId,
     string RowIdentifier,
     int SeatNumber,
-    string Status
+    string Status,
+    bool IsReservedByCurrentUser = false
 );

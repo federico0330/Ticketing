@@ -20,6 +20,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IGetAllEventsHandler, GetAllEventsHandler>();
 builder.Services.AddScoped<IGetSectorsByEventIdHandler, GetSectorsByEventIdHandler>();
 builder.Services.AddScoped<IGetSeatsBySectorIdHandler, GetSeatsBySectorIdHandler>();
+builder.Services.AddScoped<IGetUserReservationsHandler, GetUserReservationsHandler>();
 builder.Services.AddScoped<ICreateReservationHandler, CreateReservationHandler>();
 builder.Services.AddScoped<IConfirmPaymentHandler, ConfirmPaymentHandler>();
 builder.Services.AddScoped<ILoginHandler, LoginHandler>();
@@ -91,7 +92,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
-app.UseAuthorization();
+// app.UseAuthorization(); // No hay autenticación configurada
 app.MapControllers();
 
 if (app.Environment.IsDevelopment())

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Domain.Entities;
 using TicketingSystem.Infrastructure.Persistence;
@@ -32,4 +33,15 @@ public class ReservationRepository : IReservationRepository
         => await _context.Reservations
             .Where(r => r.Status == "Pending" && r.ExpiresAt <= now)
             .ToListAsync();
+
+    public async Task<IEnumerable<Reservation>> GetByUserIdAsync(int userId, bool onlyPending = true)
+    {
+        var query = _context.Reservations
+            .Where(r => r.UserId == userId);
+
+        if (onlyPending)
+            query = query.Where(r => r.Status == "Pending");
+
+        return await query.ToListAsync();
+    }
 }

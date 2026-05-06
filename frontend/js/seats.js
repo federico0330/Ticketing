@@ -1,4 +1,4 @@
-import { fetchSeatsBySector, createReservation, confirmPayment } from './api.js';
+import { fetchSeatsBySector, createReservation, confirmPayment, fetchMyReservations } from './api.js';
 import { showAlert } from './events.js';
 
 const seatsSection = document.getElementById('seats-section');
@@ -14,10 +14,12 @@ const timerDisplay = document.getElementById('timer-display');
 const btnPay = document.getElementById('btn-pay-reservation');
 
 let currentSectorId = null;
+let currentSectorName = null;
 let selectedSeat = null;
 let confirmModal = null;
 let activeReservation = null;
 let countdownInterval = null;
+let currentUserId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const modalEl = document.getElementById('confirmModal');
@@ -68,12 +70,20 @@ function stopTimer() {
     selectedSeat = null;
 }
 
+export function checkAndShowActiveReservation(reservation) {
+    if (!reservation) return;
+    
+    activeReservation = reservation;
+    currentUserId = reservation.UserId;
+    startTimer(activeReservation.ExpiresAt);
+    showAlert(`Tenés una reserva activa. Tenés 5 minutos para pagar.`, 'success');
+}
+
 async function handlePayment() {
     if (!activeReservation) return;
 
     showLoading();
     try {
-        // simulamos un token de tarjeta para la transaccion
         const result = await confirmPayment(activeReservation.Id, "tok_test_12345");
 
         if (result.ok) {
@@ -103,16 +113,38 @@ function hideLoading() {
  */
 export async function loadSeats(sectorId, sectorName) {
     currentSectorId = sectorId;
+    currentSectorName = sectorName;
     sectorTitle.innerText = `Mapa de Asientos: ${sectorName}`;
     seatsSection.classList.remove('d-none');
-    stopTimer();
     await refreshSeats();
 }
 
 async function refreshSeats() {
     showLoading();
     try {
-        const seats = await fetchSeatsBySector(currentSectorId);
+        const savedUser = localStorage.getItem('currentUser');
+        let userId = null;
+        if (savedUser) {
+            const user = JSON.parse(savedUser);
+            userId = user.Id;
+            currentUserId = user.Id;
+            
+            try {
+                const reservations = await fetchMyReservations(userId);
+                const pendingReservation = reservations?.find(r => r.Status === 'Pending');
+                if (pendingReservation) {
+                    if (!activeReservation || activeReservation.Id !== pendingReservation.Id) {
+                        checkAndShowActiveReservation(pendingReservation);
+                    }
+                } else if (activeReservation) {
+                    stopTimer();
+                }
+            } catch (err) {
+                console.error("Error fetching reservations in refreshSeats:", err);
+            }
+        }
+        
+        const seats = await fetchSeatsBySector(currentSectorId, userId);
         renderSeats(seats);
     } catch (error) {
         showAlert('No se pudieron cargar los asientos.', 'error');
@@ -147,9 +179,13 @@ function renderSeats(seats) {
         if (seat.Status === 'Available') {
             seatEl.classList.add('seat-available');
             seatEl.addEventListener('click', () => confirmSeat(seat, seatEl));
+        } else if (seat.Status === 'Reserved' && seat.IsReservedByCurrentUser) {
+            seatEl.classList.add('seat-reserved-by-me');
+            seatEl.title = "Reservado por vos - Click para pagar";
+            seatEl.addEventListener('click', () => payReservedSeat(seat));
         } else if (seat.Status === 'Reserved') {
             seatEl.classList.add('seat-reserved');
-            seatEl.title = "Reservado";
+            seatEl.title = "Reservado por otro usuario";
         } else {
             seatEl.classList.add('seat-sold');
             seatEl.title = "Vendido";
@@ -181,6 +217,14 @@ function confirmSeat(seat, seatEl) {
     if (modalEl) modalEl.addEventListener('hidden.bs.modal', hiddenHandler);
 }
 
+function payReservedSeat(seat) {
+    if (!activeReservation) {
+        showAlert('No tenés una reserva activa para pagar.', 'error');
+        return;
+    }
+    handlePayment();
+}
+
 async function handleReservation() {
     if (!selectedSeat) return;
 
@@ -204,8 +248,8 @@ async function handleReservation() {
 
         if (result.ok) {
             element.classList.remove('seat-loading');
-            element.classList.add('seat-reserved');
-            element.title = "Reservado";
+            element.classList.add('seat-reserved-by-me');
+            element.title = "Reservado por vos - Click para pagar";
 
             const clone = element.cloneNode(true);
             element.parentNode.replaceChild(clone, element);

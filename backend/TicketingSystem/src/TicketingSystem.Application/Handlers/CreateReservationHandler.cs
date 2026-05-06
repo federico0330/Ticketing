@@ -16,7 +16,6 @@ public class CreateReservationHandler : ICreateReservationHandler
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CreateReservationHandler> _logger;
 
-    // Tiempo máximo de reserva en caché antes de liberación automática (Requisito 5)
     private static readonly TimeSpan ReservationDuration = TimeSpan.FromMinutes(5);
 
     public CreateReservationHandler(
@@ -35,20 +34,21 @@ public class CreateReservationHandler : ICreateReservationHandler
 
     public async Task<ReservationDto> HandleAsync(CreateReservationCommand command)
     {
+        await _auditLogRepository.CreateAsync(new AuditLog
+        {
+            Id = Guid.NewGuid(),
+            UserId = command.UserId,
+            Action = "RESERVE_ATTEMPT",
+            EntityType = "Seat",
+            EntityId = command.SeatId.ToString(),
+            Details = JsonSerializer.Serialize(new { command.SeatId, command.UserId }),
+            CreatedAt = DateTime.UtcNow
+        });
+        await _unitOfWork.SaveChangesAsync();
+
         await _unitOfWork.BeginTransactionAsync();
         try
         {
-            await _auditLogRepository.CreateAsync(new AuditLog
-            {
-                Id = Guid.NewGuid(),
-                UserId = command.UserId,
-                Action = "RESERVE_ATTEMPT",
-                EntityType = "Seat",
-                EntityId = command.SeatId.ToString(),
-                Details = JsonSerializer.Serialize(new { command.SeatId, command.UserId }),
-                CreatedAt = DateTime.UtcNow
-            });
-
             var seat = await _seatRepository.GetByIdAsync(command.SeatId);
             if (seat is null)
                 throw new SeatNotFoundException(command.SeatId);
@@ -57,9 +57,7 @@ public class CreateReservationHandler : ICreateReservationHandler
                 throw new SeatNotAvailableException(command.SeatId);
 
             seat.Status = "Reserved";
-            
-            // Incremento manual de versión para concurrencia mediante Optimistic Locking
-            seat.Version += 1; 
+            seat.Version += 1;
             
             await _seatRepository.UpdateAsync(seat);
 
@@ -92,7 +90,6 @@ public class CreateReservationHandler : ICreateReservationHandler
                 CreatedAt = DateTime.UtcNow
             });
 
-            // Commit atómico (ACID) asegurando que reserva y auditoría se guarden juntas
             await _unitOfWork.SaveChangesAsync();
             await _unitOfWork.CommitTransactionAsync();
 
@@ -108,12 +105,52 @@ public class CreateReservationHandler : ICreateReservationHandler
         catch (ConcurrencyException ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
+            _unitOfWork.ClearChanges();
+            
+            await _auditLogRepository.CreateAsync(new AuditLog
+            {
+                Id = Guid.NewGuid(),
+                UserId = command.UserId,
+                Action = "RESERVE_FAILED",
+                EntityType = "Seat",
+                EntityId = command.SeatId.ToString(),
+                Details = JsonSerializer.Serialize(new
+                {
+                    command.SeatId,
+                    command.UserId,
+                    Reason = "Concurrency conflict",
+                    Error = ex.Message
+                }),
+                CreatedAt = DateTime.UtcNow
+            });
+            await _unitOfWork.SaveChangesAsync();
+            
             _logger.LogWarning(ex, "[CODE-ERROR] - Intento de reserva en butaca ya tomada (Concurrency Triggered). SeatId: {SeatId}", command.SeatId);
-            throw; // Relanza la excepción original de dominio con los datos reales
+            throw;
         }
-        catch
+        catch (Exception ex)
         {
             await _unitOfWork.RollbackTransactionAsync();
+            _unitOfWork.ClearChanges();
+            
+            await _auditLogRepository.CreateAsync(new AuditLog
+            {
+                Id = Guid.NewGuid(),
+                UserId = command.UserId,
+                Action = "RESERVE_FAILED",
+                EntityType = "Seat",
+                EntityId = command.SeatId.ToString(),
+                Details = JsonSerializer.Serialize(new
+                {
+                    command.SeatId,
+                    command.UserId,
+                    Reason = "Error",
+                    Error = ex.Message
+                }),
+                CreatedAt = DateTime.UtcNow
+            });
+            await _unitOfWork.SaveChangesAsync();
+            
             throw;
         }
     }
