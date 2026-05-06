@@ -1,4 +1,4 @@
-import { fetchSeatsBySector, createReservation } from './api.js';
+import { fetchSeatsBySector, createReservation, confirmPayment } from './api.js';
 import { showAlert } from './events.js';
 
 const seatsSection = document.getElementById('seats-section');
@@ -8,9 +8,16 @@ const sectorTitle = document.getElementById('sector-title');
 const confirmBtn = document.getElementById('btn-confirm-reservation');
 const modalSeatInfo = document.getElementById('modal-seat-info');
 
+// Elementos del banner de reserva
+const reservationBanner = document.getElementById('reservation-banner');
+const timerDisplay = document.getElementById('timer-display');
+const btnPay = document.getElementById('btn-pay-reservation');
+
 let currentSectorId = null;
 let selectedSeat = null;
 let confirmModal = null;
+let activeReservation = null;
+let countdownInterval = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const modalEl = document.getElementById('confirmModal');
@@ -21,7 +28,66 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmBtn) {
         confirmBtn.addEventListener('click', handleReservation);
     }
+
+    if (btnPay) {
+        btnPay.addEventListener('click', handlePayment);
+    }
 });
+
+function startTimer(expiresAt) {
+    if (countdownInterval) clearInterval(countdownInterval);
+    
+    const expiryDate = new Date(expiresAt).getTime();
+    reservationBanner.classList.remove('d-none');
+
+    const updateTimer = () => {
+        const now = new Date().getTime();
+        const distance = expiryDate - now;
+
+        if (distance < 0) {
+            stopTimer();
+            showAlert('Tu tiempo de reserva ha expirado.', 'error');
+            refreshSeats();
+            return;
+        }
+
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        timerDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    updateTimer();
+    countdownInterval = setInterval(updateTimer, 1000);
+}
+
+function stopTimer() {
+    if (countdownInterval) clearInterval(countdownInterval);
+    reservationBanner.classList.add('d-none');
+    activeReservation = null;
+}
+
+async function handlePayment() {
+    if (!activeReservation) return;
+
+    showLoading();
+    try {
+        // simulamos un token de tarjeta para la transaccion
+        const result = await confirmPayment(activeReservation.Id, "tok_test_12345");
+
+        if (result.ok) {
+            stopTimer();
+            showAlert('¡Pago confirmado! Tu entrada ha sido emitida.', 'success');
+            await refreshSeats();
+        } else {
+            showAlert(`Error en el pago: ${result.data?.Message || 'No se pudo procesar'}`, 'error');
+        }
+    } catch (error) {
+        showAlert('Ocurrió un error inesperado al procesar el pago.', 'error');
+    } finally {
+        hideLoading();
+    }
+}
 
 function showLoading() {
     spinner.classList.remove('d-none');
@@ -38,6 +104,7 @@ export async function loadSeats(sectorId, sectorName) {
     currentSectorId = sectorId;
     sectorTitle.innerText = `Mapa de Asientos: ${sectorName}`;
     seatsSection.classList.remove('d-none');
+    stopTimer();
     await refreshSeats();
 }
 
@@ -142,8 +209,10 @@ async function handleReservation() {
             const clone = element.cloneNode(true);
             element.parentNode.replaceChild(clone, element);
 
-            const expDate = new Date(result.data.ExpiresAt).toLocaleTimeString();
-            showAlert(`¡Reserva exitosa! ID: ${result.data.Id.substring(0, 8)}... Expira a las ${expDate}`, 'success');
+            activeReservation = result.data;
+            startTimer(activeReservation.ExpiresAt);
+
+            showAlert(`¡Reserva exitosa! Tienes 5 minutos para pagar.`, 'success');
             selectedSeat = null;
         } else if (result.status === 409) {
             showAlert('Este asiento ya fue tomado por otro usuario.', 'error');

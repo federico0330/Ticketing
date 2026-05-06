@@ -58,6 +58,32 @@ export async function createReservation(seatId, userId) {
 }
 
 /**
+ * Confirma el pago de una reserva.
+ */
+export async function confirmPayment(reservationId, cardToken) {
+    const response = await fetch(`${BASE_URL}/reservations/${reservationId}/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ReservationId: reservationId, CardToken: cardToken })
+    });
+    const data = await response.json();
+    return { ok: response.ok, status: response.status, data };
+}
+
+/**
+ * Confirma el pago de una reserva.
+ */
+export async function confirmPayment(reservationId, cardToken) {
+    const response = await fetch(`${BASE_URL}/reservations/${reservationId}/pay`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ReservationId: reservationId, CardToken: cardToken })
+    });
+    const data = await response.json();
+    return { ok: response.ok, status: response.status, data };
+}
+
+/**
  * Limpia la sesión.
  */
 export function logout() {
