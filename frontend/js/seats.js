@@ -65,6 +65,7 @@ function stopTimer() {
     if (countdownInterval) clearInterval(countdownInterval);
     reservationBanner.classList.add('d-none');
     activeReservation = null;
+    selectedSeat = null;
 }
 
 async function handlePayment() {
