@@ -22,7 +22,6 @@ public class SeatsController : ControllerBase
         _createReservationHandler = createReservationHandler;
     }
 
-    /// Obtiene el estado actual de todos los asientos de un sector.
     [HttpGet("sectors/{sectorId}/seats")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSeatsBySector(int sectorId)

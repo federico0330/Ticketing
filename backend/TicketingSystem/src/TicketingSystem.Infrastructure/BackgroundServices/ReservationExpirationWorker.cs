@@ -67,7 +67,7 @@ public class ReservationExpirationWorker : BackgroundService
                 await auditLogRepository.CreateAsync(new TicketingSystem.Domain.Entities.AuditLog
                 {
                     Id = Guid.NewGuid(),
-                    UserId = null, // proceso de sistema
+                    UserId = null, // El usuario es nulo porque la expiración es una tarea automática del sistema
                     Action = "RESERVE_EXPIRED",
                     EntityType = "Reservation",
                     EntityId = reservation.Id.ToString(),

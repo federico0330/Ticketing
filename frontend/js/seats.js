@@ -8,7 +8,6 @@ const sectorTitle = document.getElementById('sector-title');
 const confirmBtn = document.getElementById('btn-confirm-reservation');
 const modalSeatInfo = document.getElementById('modal-seat-info');
 
-// Elementos del banner de reserva
 const reservationBanner = document.getElementById('reservation-banner');
 const timerDisplay = document.getElementById('timer-display');
 const btnPay = document.getElementById('btn-pay-reservation');
@@ -108,9 +107,6 @@ function hideLoading() {
     spinner.classList.add('d-none');
 }
 
-/**
- * Carga el mapa de asientos.
- */
 export async function loadSeats(sectorId, sectorName) {
     currentSectorId = sectorId;
     currentSectorName = sectorName;

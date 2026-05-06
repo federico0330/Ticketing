@@ -50,7 +50,7 @@ public class AppDbContext : DbContext
             builder.Property(s => s.SeatNumber).IsRequired();
             builder.Property(s => s.Status).IsRequired().HasDefaultValue("Available");
             
-            // Habilita el control de concurrencia por versión en EF Core
+            // Habilita la verificación de concurrencia para prevenir condiciones de carrera al actualizar asientos
             builder.Property(s => s.Version).IsRequired().HasDefaultValue(0)
                    .IsConcurrencyToken(); 
                    

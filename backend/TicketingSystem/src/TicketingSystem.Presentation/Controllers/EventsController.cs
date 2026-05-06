@@ -20,7 +20,6 @@ public class EventsController : ControllerBase
         _getSectorsByEventIdHandler = getSectorsByEventIdHandler;
     }
 
-    /// Obtiene la lista de todos los eventos disponibles.
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()

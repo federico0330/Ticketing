@@ -92,12 +92,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
-// app.UseAuthorization(); // No hay autenticación configurada
 app.MapControllers();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapGet("/", () => Results.Redirect("/swagger"));
+}
+
+app.Run();
+("/", () => Results.Redirect("/swagger"));
 }
 
 app.Run();

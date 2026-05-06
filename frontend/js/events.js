@@ -1,7 +1,6 @@
 import { fetchEvents, fetchSectorsByEvent, login, fetchMyReservations } from './api.js';
 import { loadSeats, checkAndShowActiveReservation } from './seats.js';
 
-// Elementos del DOM
 const loginSection = document.getElementById('login-section');
 const eventsSection = document.getElementById('events-section');
 const eventsList = document.getElementById('events-list');
@@ -11,7 +10,6 @@ const seatsSection = document.getElementById('seats-section');
 const spinner = document.getElementById('loading-spinner');
 const eventTitle = document.getElementById('event-title');
 
-// Elementos de la Navbar y Login
 const userInfo = document.getElementById('user-info');
 const navbarUsername = document.getElementById('navbar-username');
 const btnLogout = document.getElementById('btn-logout');
@@ -20,16 +18,13 @@ const loginForm = document.getElementById('login-form');
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-    // Listeners de navegación
-    document.getElementById('btn-back-events').addEventListener('click', showEvents);
+        document.getElementById('btn-back-events').addEventListener('click', showEvents);
     document.getElementById('btn-back-sectors').addEventListener('click', showSectors);
     
-    // Configuración de Auth
-    loginForm.addEventListener('submit', handleLogin);
+        loginForm.addEventListener('submit', handleLogin);
     btnLogout.addEventListener('click', handleLogout);
 
-    // Chequear sesión guardada
-    const savedUser = localStorage.getItem('currentUser');
+        const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         const user = JSON.parse(savedUser);
         showAuthenticatedUI(user);
@@ -89,7 +84,6 @@ function showAuthenticatedUI(user) {
     navbarUsername.innerText = `Hola, ${user.Name}`;
 }
 
-// Navegación
 export function showEvents() {
     sectorsSection.classList.add('d-none');
     seatsSection.classList.add('d-none');
@@ -109,9 +103,6 @@ function hideLoading() {
     spinner.classList.add('d-none');
 }
 
-/**
- * Muestra una alerta (success o error).
- */
 export function showAlert(message, type = 'error') {
     const container = document.getElementById('alerts-container');
     const alertId = 'alert-' + Date.now();
@@ -131,9 +122,6 @@ export function showAlert(message, type = 'error') {
     }, 5000);
 }
 
-/**
- * Carga los eventos.
- */
 export async function loadEvents() {
     showLoading();
     try {
@@ -174,9 +162,6 @@ function renderEvents(events) {
     });
 }
 
-/**
- * Carga los sectores.
- */
 export async function loadSectors(eventId, eventName) {
     showLoading();
     try {

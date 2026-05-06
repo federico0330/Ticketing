@@ -8,7 +8,7 @@ public class Seat
     public int SeatNumber { get; set; }
     public string Status { get; set; } = "Available";
 
-    // Token para Optimistic Locking (manejo de concurrencia)
+    // Se utiliza concurrencia optimista para evitar que dos usuarios reserven la misma butaca simultáneamente
     public int Version { get; set; } = 0;
 
     public Sector Sector { get; set; } = null!;
