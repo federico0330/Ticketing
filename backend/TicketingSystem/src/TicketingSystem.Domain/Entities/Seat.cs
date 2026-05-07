@@ -8,7 +8,7 @@ public class Seat
     public int SeatNumber { get; set; }
     public string Status { get; set; } = "Available";
 
-    // Se utiliza concurrencia optimista para evitar que dos usuarios reserven la misma butaca simultáneamente
+    // Se utiliza control de concurrencia para evitar que dos usuarios reserven la misma butaca simultáneamente
     public int Version { get; set; } = 0;
 
     public Sector Sector { get; set; } = null!;

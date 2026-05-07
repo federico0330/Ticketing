@@ -49,7 +49,7 @@ public class AppDbContext : DbContext
             builder.Property(s => s.RowIdentifier).IsRequired();
             builder.Property(s => s.SeatNumber).IsRequired();
             builder.Property(s => s.Status).IsRequired().HasDefaultValue("Available");
-            
+
             // Habilita la verificación de concurrencia para prevenir condiciones de carrera al actualizar asientos
             builder.Property(s => s.Version).IsRequired().HasDefaultValue(0)
                    .IsConcurrencyToken(); 

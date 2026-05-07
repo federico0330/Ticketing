@@ -16,7 +16,7 @@ builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// Registramos por interfaz para cumplir con el Principio de Inversión de Dependencias (DIP de SOLID)
+// Registramos dependencias por interfaz para facilitar testing y desacoplar la implementación
 builder.Services.AddScoped<IGetAllEventsHandler, GetAllEventsHandler>();
 builder.Services.AddScoped<IGetSectorsByEventIdHandler, GetSectorsByEventIdHandler>();
 builder.Services.AddScoped<IGetSeatsBySectorIdHandler, GetSeatsBySectorIdHandler>();
@@ -97,10 +97,6 @@ app.MapControllers();
 if (app.Environment.IsDevelopment())
 {
     app.MapGet("/", () => Results.Redirect("/swagger"));
-}
-
-app.Run();
-("/", () => Results.Redirect("/swagger"));
 }
 
 app.Run();
