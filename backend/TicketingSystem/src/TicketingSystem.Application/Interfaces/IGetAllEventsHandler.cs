@@ -5,5 +5,5 @@ namespace TicketingSystem.Application.Interfaces;
 
 public interface IGetAllEventsHandler
 {
-    Task<IEnumerable<EventDto>> HandleAsync(GetAllEventsQuery query);
+    Task<IEnumerable<EventDto>> HandleAsync(GetAllEventsQuery query, CancellationToken cancellationToken = default);
 }

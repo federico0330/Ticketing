@@ -4,5 +4,5 @@ namespace TicketingSystem.Application.Interfaces;
 
 public interface ILoginHandler
 {
-    Task<LoginResponse?> HandleAsync(LoginRequest request);
+    Task<LoginResponse?> HandleAsync(LoginRequest request, CancellationToken cancellationToken = default);
 }

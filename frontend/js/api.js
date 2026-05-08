@@ -29,7 +29,7 @@ export async function fetchMyReservations(userId) {
 
 export async function login(email, password) {
     try {
-        const response = await fetch(`${BASE_URL}/auth/login`, {
+        const response = await fetch(`${BASE_URL}/auth/sessions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ Email: email, Password: password })
@@ -52,7 +52,7 @@ export async function createReservation(seatId, userId) {
 }
 
 export async function confirmPayment(reservationId, cardToken) {
-    const response = await fetch(`${BASE_URL}/reservations/${reservationId}/pay`, {
+    const response = await fetch(`${BASE_URL}/reservations/${reservationId}/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ReservationId: reservationId, CardToken: cardToken })

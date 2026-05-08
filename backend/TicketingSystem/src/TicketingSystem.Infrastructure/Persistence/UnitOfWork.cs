@@ -13,34 +13,41 @@ public class UnitOfWork : IUnitOfWork
         _context = context;
     }
 
-    public async Task BeginTransactionAsync()
+    public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
-        _transaction = await _context.Database.BeginTransactionAsync();
+        _transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
     }
 
-    public async Task CommitTransactionAsync()
+    public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_transaction != null)
         {
-            await _transaction.CommitAsync();
+            await _transaction.CommitAsync(cancellationToken);
             await _transaction.DisposeAsync();
             _transaction = null;
         }
     }
 
-    public async Task RollbackTransactionAsync()
+    public async Task RollbackTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_transaction != null)
         {
-            await _transaction.RollbackAsync();
+            await _transaction.RollbackAsync(cancellationToken);
             await _transaction.DisposeAsync();
             _transaction = null;
         }
     }
 
-    public async Task SaveChangesAsync()
+    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        await _context.SaveChangesAsync();
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+        {
+            throw new TicketingSystem.Domain.Exceptions.ConcurrencyException("El recurso fue modificado por otro usuario.");
+        }
     }
 
     public void ClearChanges()

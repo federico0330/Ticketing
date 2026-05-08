@@ -16,13 +16,13 @@ public class GetSectorsByEventIdHandler : IGetSectorsByEventIdHandler
         _eventRepository = eventRepository;
     }
 
-    public async Task<IEnumerable<SectorDto>> HandleAsync(GetSectorsByEventIdQuery query)
+    public async Task<IEnumerable<SectorDto>> HandleAsync(GetSectorsByEventIdQuery query, CancellationToken cancellationToken = default)
     {
-        var eventExists = await _eventRepository.GetByIdAsync(query.EventId);
+        var eventExists = await _eventRepository.GetByIdAsync(query.EventId, cancellationToken);
         if (eventExists is null)
             throw new EventNotFoundException(query.EventId);
 
-        var sectors = await _sectorRepository.GetByEventIdAsync(query.EventId);
+        var sectors = await _sectorRepository.GetByEventIdAsync(query.EventId, cancellationToken);
 
         return sectors.Select(s => new SectorDto(
             s.Id,

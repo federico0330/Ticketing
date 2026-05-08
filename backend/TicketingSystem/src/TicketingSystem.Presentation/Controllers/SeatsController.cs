@@ -24,9 +24,9 @@ public class SeatsController : ControllerBase
 
     [HttpGet("sectors/{sectorId}/seats")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSeatsBySector(int sectorId)
+    public async Task<IActionResult> GetSeatsBySector(int sectorId, CancellationToken cancellationToken)
     {
-        var seats = await _getSeatsBySectorIdHandler.HandleAsync(new GetSeatsBySectorIdQuery(sectorId));
+        var seats = await _getSeatsBySectorIdHandler.HandleAsync(new GetSeatsBySectorIdQuery(sectorId), cancellationToken);
         return Ok(seats);
     }
 
@@ -35,13 +35,13 @@ public class SeatsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> CreateReservation([FromBody] CreateReservationRequest request)
+    public async Task<IActionResult> CreateReservation([FromBody] CreateReservationRequest request, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
             return BadRequest(new { Error = "VALIDATION_ERROR", Message = "Datos de entrada inválidos." });
 
         var command = new CreateReservationCommand(request.SeatId, request.UserId);
-        var reservation = await _createReservationHandler.HandleAsync(command);
+        var reservation = await _createReservationHandler.HandleAsync(command, cancellationToken);
         return StatusCode(StatusCodes.Status201Created, reservation);
     }
 }

@@ -5,5 +5,5 @@ namespace TicketingSystem.Application.Interfaces;
 
 public interface IGetUserReservationsHandler
 {
-    Task<IEnumerable<ReservationDto>> HandleAsync(GetUserReservationsQuery query);
+    Task<IEnumerable<ReservationDto>> HandleAsync(GetUserReservationsQuery query, CancellationToken cancellationToken = default);
 }

@@ -14,17 +14,17 @@ public class SeatRepository : ISeatRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Seat>> GetBySectorIdAsync(int sectorId)
+    public async Task<IEnumerable<Seat>> GetBySectorIdAsync(int sectorId, CancellationToken cancellationToken = default)
         => await _context.Seats
             .Where(s => s.SectorId == sectorId)
             .OrderBy(s => s.RowIdentifier)
             .ThenBy(s => s.SeatNumber)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
-    public async Task<Seat?> GetByIdAsync(Guid id)
-        => await _context.Seats.FindAsync(id);
+    public async Task<Seat?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        => await _context.Seats.FindAsync(new object[] { id }, cancellationToken);
 
-    public Task UpdateAsync(Seat seat)
+    public Task UpdateAsync(Seat seat, CancellationToken cancellationToken = default)
     {
         _context.Seats.Update(seat);
         return Task.CompletedTask;

@@ -32,21 +32,21 @@ public class CreateReservationHandler : ICreateReservationHandler
         _logger = logger;
     }
 
-    public async Task<ReservationDto> HandleAsync(CreateReservationCommand command)
+    public async Task<ReservationDto> HandleAsync(CreateReservationCommand command, CancellationToken cancellationToken = default)
     {
-        await LogAuditAsync(command.UserId, "RESERVE_ATTEMPT", "Seat", command.SeatId.ToString(), new { command.SeatId, command.UserId });
-        await _unitOfWork.SaveChangesAsync();
+        await LogAuditAsync(command.UserId, "RESERVE_ATTEMPT", "Seat", command.SeatId.ToString(), new { command.SeatId, command.UserId }, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        await _unitOfWork.BeginTransactionAsync();
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
-            var seat = await GetAndValidateSeatAsync(command.SeatId);
+            var seat = await GetAndValidateSeatAsync(command.SeatId, cancellationToken);
             seat.Status = "Reserved";
             seat.Version += 1;
-            await _seatRepository.UpdateAsync(seat);
+            await _seatRepository.UpdateAsync(seat, cancellationToken);
 
             var reservation = await BuildReservationAsync(command.UserId, command.SeatId);
-            await _reservationRepository.CreateAsync(reservation);
+            await _reservationRepository.CreateAsync(reservation, cancellationToken);
 
             await LogAuditAsync(command.UserId, "RESERVE_SUCCESS", "Reservation", reservation.Id.ToString(), new
             {
@@ -54,10 +54,10 @@ public class CreateReservationHandler : ICreateReservationHandler
                 command.SeatId,
                 command.UserId,
                 reservation.ExpiresAt
-            });
+            }, cancellationToken);
 
-            await _unitOfWork.SaveChangesAsync();
-            await _unitOfWork.CommitTransactionAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
             return new ReservationDto(
                 reservation.Id,
@@ -70,19 +70,19 @@ public class CreateReservationHandler : ICreateReservationHandler
         }
         catch (ConcurrencyException ex)
         {
-            await HandleReservationFailureAsync(command.UserId, command.SeatId, "Concurrency conflict", ex);
+            await HandleReservationFailureAsync(command.UserId, command.SeatId, "Concurrency conflict", ex, cancellationToken);
             throw;
         }
         catch (Exception ex)
         {
-            await HandleReservationFailureAsync(command.UserId, command.SeatId, "Error", ex);
+            await HandleReservationFailureAsync(command.UserId, command.SeatId, "Error", ex, cancellationToken);
             throw;
         }
     }
 
-    private async Task<Seat> GetAndValidateSeatAsync(Guid seatId)
+    private async Task<Seat> GetAndValidateSeatAsync(Guid seatId, CancellationToken cancellationToken)
     {
-        var seat = await _seatRepository.GetByIdAsync(seatId);
+        var seat = await _seatRepository.GetByIdAsync(seatId, cancellationToken);
         if (seat is null)
             throw new SeatNotFoundException(seatId);
         if (seat.Status != "Available")
@@ -105,7 +105,7 @@ public class CreateReservationHandler : ICreateReservationHandler
         return Task.FromResult(reservation);
     }
 
-    private async Task LogAuditAsync(int userId, string action, string entityType, string entityId, object details)
+    private async Task LogAuditAsync(int userId, string action, string entityType, string entityId, object details, CancellationToken cancellationToken)
     {
         await _auditLogRepository.CreateAsync(new AuditLog
         {
@@ -116,15 +116,15 @@ public class CreateReservationHandler : ICreateReservationHandler
             EntityId = entityId,
             Details = JsonSerializer.Serialize(details),
             CreatedAt = DateTime.UtcNow
-        });
+        }, cancellationToken);
     }
 
-    private async Task HandleReservationFailureAsync(int userId, Guid seatId, string reason, Exception ex)
+    private async Task HandleReservationFailureAsync(int userId, Guid seatId, string reason, Exception ex, CancellationToken cancellationToken)
     {
-        await _unitOfWork.RollbackTransactionAsync();
+        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
         _unitOfWork.ClearChanges();
-        await LogAuditAsync(userId, "RESERVE_FAILED", "Seat", seatId.ToString(), new { seatId, userId, Reason = reason, Error = ex.Message });
-        await _unitOfWork.SaveChangesAsync();
+        await LogAuditAsync(userId, "RESERVE_FAILED", "Seat", seatId.ToString(), new { seatId, userId, Reason = reason, Error = ex.Message }, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
         if (reason == "Concurrency conflict")
             _logger.LogWarning(ex, "[CODE-ERROR] - Intento de reserva en butaca ya tomada (Concurrency Triggered). SeatId: {SeatId}", seatId);
     }

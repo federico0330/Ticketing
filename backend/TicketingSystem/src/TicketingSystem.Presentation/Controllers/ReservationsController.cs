@@ -22,12 +22,12 @@ public class ReservationsController : ControllerBase
         _getUserReservationsHandler = getUserReservationsHandler;
     }
 
-    [HttpPost("{id}/pay")]
+    [HttpPost("{id}/payments")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> ConfirmPayment(Guid id, [FromBody] PaymentRequest request)
+    public async Task<IActionResult> ConfirmPayment(Guid id, [FromBody] PaymentRequest request, CancellationToken cancellationToken)
     {
         if (id != request.ReservationId)
         {
@@ -40,16 +40,16 @@ public class ReservationsController : ControllerBase
             CardToken = request.CardToken 
         };
 
-        var response = await _confirmPaymentHandler.HandleAsync(command);
+        var response = await _confirmPaymentHandler.HandleAsync(command, cancellationToken);
         return Ok(response);
     }
 
     [HttpGet("mine")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMyReservations([FromQuery] int userId)
+    public async Task<IActionResult> GetMyReservations([FromQuery] int userId, CancellationToken cancellationToken)
     {
         var query = new GetUserReservationsQuery(userId);
-        var result = await _getUserReservationsHandler.HandleAsync(query);
+        var result = await _getUserReservationsHandler.HandleAsync(query, cancellationToken);
         return Ok(result);
     }
 }

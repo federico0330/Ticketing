@@ -14,12 +14,12 @@ public class SectorRepository : ISectorRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Sector>> GetByEventIdAsync(int eventId)
+    public async Task<IEnumerable<Sector>> GetByEventIdAsync(int eventId, CancellationToken cancellationToken = default)
         => await _context.Sectors
             .Where(s => s.EventId == eventId)
             .OrderBy(s => s.Name)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
-    public async Task<Sector?> GetByIdAsync(int id)
-        => await _context.Sectors.FindAsync(id);
+    public async Task<Sector?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        => await _context.Sectors.FindAsync(new object[] { id }, cancellationToken);
 }

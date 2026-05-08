@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Lk6ETN3sx9mN6/2047O/3tGFwD1yciVimo124Zwg722+sekf1S/ktkzQd30FN6MUeBTSrU5BzxKfoTLxI+VxrQ==",
+  "dgSpecHash": "a2IDMEa40v7kYvUhzeW9wZ3aYviWcZmRAJtDIC0v4U/UxooZMRYs1ysJX085kIc6Z2esTbReI5nMAAE4L2fSDQ==",
   "success": true,
-  "projectFilePath": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj",
+  "projectFilePath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj",
   "expectedPackageFiles": [
     "/home/federico/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/8.0.1/microsoft.extensions.dependencyinjection.abstractions.8.0.1.nupkg.sha512",
     "/home/federico/.nuget/packages/microsoft.extensions.logging.abstractions/8.0.1/microsoft.extensions.logging.abstractions.8.0.1.nupkg.sha512"

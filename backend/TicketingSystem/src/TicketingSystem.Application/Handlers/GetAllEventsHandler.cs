@@ -13,9 +13,9 @@ public class GetAllEventsHandler : IGetAllEventsHandler
         _eventRepository = eventRepository;
     }
 
-    public async Task<IEnumerable<EventDto>> HandleAsync(GetAllEventsQuery query)
+    public async Task<IEnumerable<EventDto>> HandleAsync(GetAllEventsQuery query, CancellationToken cancellationToken = default)
     {
-        var events = await _eventRepository.GetAllAsync();
+        var events = await _eventRepository.GetAllAsync(cancellationToken);
 
         return events.Select(e => new EventDto(
             e.Id,

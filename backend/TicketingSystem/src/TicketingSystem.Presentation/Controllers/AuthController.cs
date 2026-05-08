@@ -16,12 +16,12 @@ public class AuthController : ControllerBase
         _loginHandler = loginHandler;
     }
 
-    [HttpPost("login")]
+    [HttpPost("sessions")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        var response = await _loginHandler.HandleAsync(request);
+        var response = await _loginHandler.HandleAsync(request, cancellationToken);
 
         if (response == null)
         {

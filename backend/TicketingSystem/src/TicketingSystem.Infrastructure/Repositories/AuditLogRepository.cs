@@ -13,7 +13,7 @@ public class AuditLogRepository : IAuditLogRepository
         _context = context;
     }
 
-    public Task CreateAsync(AuditLog auditLog)
+    public Task CreateAsync(AuditLog auditLog, CancellationToken cancellationToken = default)
     {
         _context.AuditLogs.Add(auditLog);
         return Task.CompletedTask;

@@ -5,5 +5,5 @@ namespace TicketingSystem.Application.Interfaces;
 
 public interface ICreateReservationHandler
 {
-    Task<ReservationDto> HandleAsync(CreateReservationCommand command);
+    Task<ReservationDto> HandleAsync(CreateReservationCommand command, CancellationToken cancellationToken = default);
 }

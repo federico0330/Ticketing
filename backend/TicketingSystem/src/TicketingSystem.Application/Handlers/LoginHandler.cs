@@ -12,9 +12,9 @@ public class LoginHandler : ILoginHandler
         _userRepository = userRepository;
     }
 
-    public async Task<LoginResponse?> HandleAsync(LoginRequest request)
+    public async Task<LoginResponse?> HandleAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email);
+        var user = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
 
         if (user == null || user.PasswordHash != request.Password)
         {

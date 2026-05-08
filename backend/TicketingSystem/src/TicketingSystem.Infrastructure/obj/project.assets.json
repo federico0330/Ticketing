@@ -5226,11 +5226,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
+      "projectUniqueName": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
       "projectName": "TicketingSystem.Infrastructure",
-      "projectPath": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
+      "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
       "packagesPath": "/home/federico/.nuget/packages/",
-      "outputPath": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/obj/",
+      "outputPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/federico/.nuget/NuGet/NuGet.Config"
@@ -5245,11 +5245,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj": {
-              "projectPath": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj"
+            "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj": {
+              "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj"
             },
-            "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj": {
-              "projectPath": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj"
+            "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj": {
+              "projectPath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Domain/TicketingSystem.Domain.csproj"
             }
           }
         }

@@ -18,14 +18,14 @@ public class GetSeatsBySectorIdHandler : IGetSeatsBySectorIdHandler
         _reservationRepository = reservationRepository;
     }
 
-    public async Task<IEnumerable<SeatDto>> HandleAsync(GetSeatsBySectorIdQuery query)
+    public async Task<IEnumerable<SeatDto>> HandleAsync(GetSeatsBySectorIdQuery query, CancellationToken cancellationToken = default)
     {
-        var seats = await _seatRepository.GetBySectorIdAsync(query.SectorId);
+        var seats = await _seatRepository.GetBySectorIdAsync(query.SectorId, cancellationToken);
 
         HashSet<Guid>? userReservedSeatIds = null;
         if (query.CurrentUserId.HasValue)
         {
-            var userReservations = await _reservationRepository.GetByUserIdAsync(query.CurrentUserId.Value, onlyPending: true);
+            var userReservations = await _reservationRepository.GetByUserIdAsync(query.CurrentUserId.Value, onlyPending: true, cancellationToken);
             userReservedSeatIds = new HashSet<Guid>(
                 userReservations.Where(r => r.Status == "Pending").Select(r => r.SeatId)
             );

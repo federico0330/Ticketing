@@ -13,9 +13,9 @@ public class GetUserReservationsHandler : IGetUserReservationsHandler
         _reservationRepository = reservationRepository;
     }
 
-    public async Task<IEnumerable<ReservationDto>> HandleAsync(GetUserReservationsQuery query)
+    public async Task<IEnumerable<ReservationDto>> HandleAsync(GetUserReservationsQuery query, CancellationToken cancellationToken = default)
     {
-        var reservations = await _reservationRepository.GetByUserIdAsync(query.UserId, query.OnlyPending);
+        var reservations = await _reservationRepository.GetByUserIdAsync(query.UserId, query.OnlyPending, cancellationToken);
 
         return reservations.Select(r => new ReservationDto(
             r.Id,

@@ -4,11 +4,5 @@
         <name>TicketingSystem.Presentation</name>
     </assembly>
     <members>
-        <member name="M:TicketingSystem.Presentation.Controllers.EventsController.GetAll">
-            Obtiene la lista de todos los eventos disponibles.
-        </member>
-        <member name="M:TicketingSystem.Presentation.Controllers.SeatsController.GetSeatsBySector(System.Int32)">
-            Obtiene el estado actual de todos los asientos de un sector.
-        </member>
     </members>
 </doc>

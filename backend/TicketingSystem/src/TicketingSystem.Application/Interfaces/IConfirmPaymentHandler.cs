@@ -5,5 +5,5 @@ namespace TicketingSystem.Application.Interfaces;
 
 public interface IConfirmPaymentHandler
 {
-    Task<PaymentResponse> HandleAsync(ConfirmPaymentCommand command);
+    Task<PaymentResponse> HandleAsync(ConfirmPaymentCommand command, CancellationToken cancellationToken = default);
 }

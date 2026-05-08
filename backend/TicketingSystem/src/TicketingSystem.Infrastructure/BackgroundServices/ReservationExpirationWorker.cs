@@ -61,6 +61,7 @@ public class ReservationExpirationWorker : BackgroundService
                 if (seat != null)
                 {
                     seat.Status = "Available";
+                    seat.Version += 1;
                     await seatRepository.UpdateAsync(seat);
                 }
 
@@ -83,6 +84,7 @@ public class ReservationExpirationWorker : BackgroundService
             catch (Exception ex)
             {
                 await unitOfWork.RollbackTransactionAsync();
+                unitOfWork.ClearChanges();
                 _logger.LogError(ex, "Failed to expire reservation {ReservationId}.", reservation.Id);
             }
         }

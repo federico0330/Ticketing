@@ -14,9 +14,9 @@ public class EventRepository : IEventRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Event>> GetAllAsync()
-        => await _context.Events.OrderBy(e => e.EventDate).ToListAsync();
+    public async Task<IEnumerable<Event>> GetAllAsync(CancellationToken cancellationToken = default)
+        => await _context.Events.OrderBy(e => e.EventDate).ToListAsync(cancellationToken);
 
-    public async Task<Event?> GetByIdAsync(int id)
-        => await _context.Events.FindAsync(id);
+    public async Task<Event?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        => await _context.Events.FindAsync(new object[] { id }, cancellationToken);
 }

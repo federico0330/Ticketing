@@ -5,5 +5,5 @@ namespace TicketingSystem.Application.Interfaces;
 
 public interface IGetSeatsBySectorIdHandler
 {
-    Task<IEnumerable<SeatDto>> HandleAsync(GetSeatsBySectorIdQuery query);
+    Task<IEnumerable<SeatDto>> HandleAsync(GetSeatsBySectorIdQuery query, CancellationToken cancellationToken = default);
 }

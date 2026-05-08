@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "rxBVDDgFCa3ffg9XgwZ2lTUVTe/rEH1lZA4ptnMFJrH2ITAGEnHKmfsyWO2v84CA3Ne26RdO8PLtYg7P9SARGg==",
+  "dgSpecHash": "maLEsazPwctz+bjQEQQy2+mREzfUeteLqbVz4QN7MtaESe5PzncttZHzUO74omPubNqn69u0SkoCy9SDpmgXpA==",
   "success": true,
-  "projectFilePath": "/home/federico/ProyectoSoftware/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
+  "projectFilePath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Infrastructure/TicketingSystem.Infrastructure.csproj",
   "expectedPackageFiles": [
     "/home/federico/.nuget/packages/azure.core/1.38.0/azure.core.1.38.0.nupkg.sha512",
     "/home/federico/.nuget/packages/azure.identity/1.11.4/azure.identity.1.11.4.nupkg.sha512",

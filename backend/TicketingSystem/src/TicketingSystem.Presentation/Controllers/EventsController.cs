@@ -22,18 +22,18 @@ public class EventsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        var events = await _getAllEventsHandler.HandleAsync(new GetAllEventsQuery());
+        var events = await _getAllEventsHandler.HandleAsync(new GetAllEventsQuery(), cancellationToken);
         return Ok(events);
     }
 
     [HttpGet("{id}/sectors")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetSectors(int id)
+    public async Task<IActionResult> GetSectors(int id, CancellationToken cancellationToken)
     {
-        var sectors = await _getSectorsByEventIdHandler.HandleAsync(new GetSectorsByEventIdQuery(id));
+        var sectors = await _getSectorsByEventIdHandler.HandleAsync(new GetSectorsByEventIdQuery(id), cancellationToken);
         return Ok(sectors);
     }
 }
