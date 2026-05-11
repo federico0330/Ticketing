@@ -15,15 +15,18 @@ public class EventsController : ControllerBase
     private readonly IGetAllEventsHandler _getAllEventsHandler;
     private readonly IGetSectorsByEventIdHandler _getSectorsByEventIdHandler;
     private readonly ICreateEventHandler _createEventHandler;
+    private readonly IUpdateEventHandler _updateEventHandler;
 
     public EventsController(
         IGetAllEventsHandler getAllEventsHandler,
         IGetSectorsByEventIdHandler getSectorsByEventIdHandler,
-        ICreateEventHandler createEventHandler)
+        ICreateEventHandler createEventHandler,
+        IUpdateEventHandler updateEventHandler)
     {
         _getAllEventsHandler = getAllEventsHandler;
         _getSectorsByEventIdHandler = getSectorsByEventIdHandler;
         _createEventHandler = createEventHandler;
+        _updateEventHandler = updateEventHandler;
     }
 
     [HttpPost]
@@ -42,6 +45,17 @@ public class EventsController : ControllerBase
     {
         var events = await _getAllEventsHandler.HandleAsync(new GetAllEventsQuery(User.IsInRole("Admin")), cancellationToken);
         return Ok(events);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateEventRequest request, CancellationToken cancellationToken)
+    {
+        var command = new UpdateEventCommand(id, request.Name, request.EventDate, request.Venue);
+        var result = await _updateEventHandler.HandleAsync(command, cancellationToken);
+        return Ok(result);
     }
 
     [HttpGet("{id}/sectors")]

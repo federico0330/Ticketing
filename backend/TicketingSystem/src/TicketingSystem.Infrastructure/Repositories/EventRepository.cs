@@ -35,4 +35,10 @@ public class EventRepository : IEventRepository
         _context.Events.Add(@event);
         return Task.FromResult(@event);
     }
+
+    public Task UpdateAsync(Event @event, CancellationToken cancellationToken = default)
+    {
+        _context.Events.Update(@event);
+        return Task.CompletedTask;
+    }
 }
