@@ -24,9 +24,9 @@ public class SeatsController : ControllerBase
 
     [HttpGet("sectors/{sectorId}/seats")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSeatsBySector(int sectorId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetSeatsBySector(int sectorId, [FromQuery] int? userId, CancellationToken cancellationToken)
     {
-        var seats = await _getSeatsBySectorIdHandler.HandleAsync(new GetSeatsBySectorIdQuery(sectorId), cancellationToken);
+        var seats = await _getSeatsBySectorIdHandler.HandleAsync(new GetSeatsBySectorIdQuery(sectorId, userId), cancellationToken);
         return Ok(seats);
     }
 

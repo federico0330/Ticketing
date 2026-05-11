@@ -32,7 +32,7 @@ public class ReservationExpirationWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while processing expired reservations.");
+                _logger.LogError(ex, "[CODE-ERROR] - Error occurred while processing expired reservations.");
             }
         }
 
@@ -85,7 +85,7 @@ public class ReservationExpirationWorker : BackgroundService
             {
                 await unitOfWork.RollbackTransactionAsync();
                 unitOfWork.ClearChanges();
-                _logger.LogError(ex, "Failed to expire reservation {ReservationId}.", reservation.Id);
+                _logger.LogError(ex, "[CODE-ERROR] - Failed to expire reservation {ReservationId}.", reservation.Id);
             }
         }
     }

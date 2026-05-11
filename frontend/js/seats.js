@@ -16,9 +16,11 @@ let currentSectorId = null;
 let currentSectorName = null;
 let selectedSeat = null;
 let confirmModal = null;
-let activeReservation = null;
+let activeReservations = []; // Ahora soportamos múltiples reservas
 let countdownInterval = null;
 let currentUserId = null;
+
+let paymentModal = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const modalEl = document.getElementById('confirmModal');
@@ -26,14 +28,110 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmModal = new bootstrap.Modal(modalEl);
     }
 
+    const paymentModalEl = document.getElementById('paymentModal');
+    if (paymentModalEl) {
+        paymentModal = new bootstrap.Modal(paymentModalEl);
+        paymentModalEl.addEventListener('show.bs.modal', updatePaymentSummary);
+        paymentModalEl.addEventListener('show.bs.modal', () => {
+            const submitBtn = document.getElementById('btn-submit-payment');
+            if (submitBtn) submitBtn.disabled = false;
+            
+            const paymentForm = document.getElementById('payment-form');
+            if (paymentForm) paymentForm.reset();
+        });
+    }
+
+    const cardNumberInput = document.getElementById('cardNumber');
+    if (cardNumberInput) {
+        cardNumberInput.addEventListener('input', formatCardNumber);
+    }
+
+    const cardExpiryInput = document.getElementById('cardExpiry');
+    if (cardExpiryInput) {
+        cardExpiryInput.addEventListener('input', formatExpiryDate);
+    }
+
     if (confirmBtn) {
         confirmBtn.addEventListener('click', handleReservation);
     }
 
     if (btnPay) {
-        btnPay.addEventListener('click', handlePayment);
+        btnPay.addEventListener('click', () => {
+            if (activeReservations.length > 0 && paymentModal) {
+                paymentModal.show();
+            }
+        });
+    }
+
+    const paymentForm = document.getElementById('payment-form');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', handlePaymentSubmit);
     }
 });
+
+function formatCardNumber(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    let formatted = value.match(/.{1,4}/g)?.join(' ') || '';
+    e.target.value = formatted.substring(0, 19);
+}
+
+function formatExpiryDate(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2, 6);
+    }
+    e.target.value = value.substring(0, 7);
+}
+
+function updatePaymentSummary() {
+    const totalAmount = document.getElementById('total-amount');
+    const resCount = document.getElementById('reservation-count');
+    if (totalAmount && resCount) {
+        const count = activeReservations.length;
+        resCount.innerText = count;
+        totalAmount.innerText = `$${(count * 10000).toLocaleString()}`;
+    }
+}
+
+async function handlePaymentSubmit(e) {
+    e.preventDefault();
+    if (activeReservations.length === 0) return;
+
+    const cardName = document.getElementById('cardName').value;
+    const cardNumber = document.getElementById('cardNumber').value;
+    const cardExpiry = document.getElementById('cardExpiry').value;
+    const cardCvv = document.getElementById('cardCvv').value;
+    const submitBtn = document.getElementById('btn-submit-payment');
+
+    submitBtn.disabled = true;
+    showLoading();
+
+    // Simular retraso de 2 segundos para mayor realismo
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    try {
+        const resIds = activeReservations.map(r => r.Id);
+        const result = await confirmPayment(resIds, cardNumber, cardName, cardExpiry, cardCvv);
+
+        if (result.ok) {
+            if (paymentModal) paymentModal.hide();
+            stopTimer();
+            showAlert(`¡Pago confirmado! Se procesaron ${resIds.length} entradas.`, 'success');
+            document.getElementById('payment-form').reset();
+            document.getElementById('seats-section').classList.add('d-none');
+            document.getElementById('events-section').classList.remove('d-none');
+        } else {
+            showAlert(`Error en el pago: ${result.data?.Message || 'No se pudo procesar'}`, 'error');
+            submitBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('[CODE-ERROR] - ', error);
+        showAlert('Ocurrió un error inesperado al procesar el pago.', 'error');
+        submitBtn.disabled = false;
+    } finally {
+        hideLoading();
+    }
+}
 
 function startTimer(expiresAt) {
     if (countdownInterval) clearInterval(countdownInterval);
@@ -65,38 +163,29 @@ function startTimer(expiresAt) {
 function stopTimer() {
     if (countdownInterval) clearInterval(countdownInterval);
     reservationBanner.classList.add('d-none');
-    activeReservation = null;
+    activeReservations = [];
     selectedSeat = null;
 }
 
 export function checkAndShowActiveReservation(reservation) {
     if (!reservation) return;
     
-    activeReservation = reservation;
-    currentUserId = reservation.UserId;
-    startTimer(activeReservation.ExpiresAt);
-    showAlert(`Tenés una reserva activa. Tenés 5 minutos para pagar.`, 'success');
-}
-
-async function handlePayment() {
-    if (!activeReservation) return;
-
-    showLoading();
-    try {
-        const result = await confirmPayment(activeReservation.Id, "tok_test_12345");
-
-        if (result.ok) {
-            stopTimer();
-            showAlert('¡Pago confirmado! Tu entrada ha sido emitida.', 'success');
-            await refreshSeats();
-        } else {
-            showAlert(`Error en el pago: ${result.data?.Message || 'No se pudo procesar'}`, 'error');
-        }
-    } catch (error) {
-        showAlert('Ocurrió un error inesperado al procesar el pago.', 'error');
-    } finally {
-        hideLoading();
+    // Si ya hay reservas, la agregamos si no está
+    if (!activeReservations.find(r => r.Id === reservation.Id)) {
+        activeReservations.push(reservation);
     }
+    
+    currentUserId = reservation.UserId;
+    
+    // El timer siempre usa la fecha de expiración más cercana
+    const earliestExpiry = activeReservations.reduce((prev, curr) => 
+        new Date(prev.ExpiresAt) < new Date(curr.ExpiresAt) ? prev : curr
+    );
+    
+    startTimer(earliestExpiry.ExpiresAt);
+    
+    const count = activeReservations.length;
+    showAlert(`Tenés ${count} reserva${count > 1 ? 's' : ''} activa${count > 1 ? 's' : ''}. Pagalas pronto.`, 'success');
 }
 
 function showLoading() {
@@ -127,12 +216,15 @@ async function refreshSeats() {
             
             try {
                 const reservations = await fetchMyReservations(userId);
-                const pendingReservation = reservations?.find(r => r.Status === 'Pending');
-                if (pendingReservation) {
-                    if (!activeReservation || activeReservation.Id !== pendingReservation.Id) {
-                        checkAndShowActiveReservation(pendingReservation);
-                    }
-                } else if (activeReservation) {
+                const pending = reservations?.filter(r => r.Status === 'Pending') || [];
+                
+                if (pending.length > 0) {
+                    activeReservations = pending;
+                    const earliestExpiry = activeReservations.reduce((prev, curr) => 
+                        new Date(prev.ExpiresAt) < new Date(curr.ExpiresAt) ? prev : curr
+                    );
+                    startTimer(earliestExpiry.ExpiresAt);
+                } else {
                     stopTimer();
                 }
             } catch (err) {
@@ -250,10 +342,15 @@ async function handleReservation() {
             const clone = element.cloneNode(true);
             element.parentNode.replaceChild(clone, element);
 
-            activeReservation = result.data;
-            startTimer(activeReservation.ExpiresAt);
+            activeReservations.push(result.data);
+            
+            const earliestExpiry = activeReservations.reduce((prev, curr) => 
+                new Date(prev.ExpiresAt) < new Date(curr.ExpiresAt) ? prev : curr
+            );
+            startTimer(earliestExpiry.ExpiresAt);
 
-            showAlert(`¡Reserva exitosa! Tienes 5 minutos para pagar.`, 'success');
+            const count = activeReservations.length;
+            showAlert(`¡Reserva exitosa! Tenés ${count} asiento${count > 1 ? 's' : ''} reservados.`, 'success');
             selectedSeat = null;
         } else if (result.status === 409) {
             showAlert('Este asiento ya fue tomado por otro usuario.', 'error');

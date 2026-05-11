@@ -23,7 +23,7 @@ public class GlobalExceptionHandler
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An unhandled exception occurred.");
+            _logger.LogError(ex, "[CODE-ERROR] - An unhandled exception occurred.");
             await HandleExceptionAsync(context, ex);
         }
     }
@@ -47,6 +47,7 @@ public class GlobalExceptionHandler
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                 response = new { Error = "NOT_FOUND", Message = exception.Message };
                 break;
+            case PaymentFailedException:
             case ReservationExpiredException:
             case InvalidOperationException:
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;

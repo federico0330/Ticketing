@@ -51,11 +51,17 @@ export async function createReservation(seatId, userId) {
     return { ok: response.ok, status: response.status, data };
 }
 
-export async function confirmPayment(reservationId, cardToken) {
-    const response = await fetch(`${BASE_URL}/reservations/${reservationId}/payments`, {
+export async function confirmPayment(reservationIds, creditCardNumber, cardHolderName, expiryDate, cvv) {
+    const response = await fetch(`${BASE_URL}/reservations/payments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ReservationId: reservationId, CardToken: cardToken })
+        body: JSON.stringify({ 
+            ReservationIds: reservationIds, 
+            CreditCardNumber: creditCardNumber, 
+            CardHolderName: cardHolderName,
+            ExpiryDate: expiryDate,
+            Cvv: cvv
+        })
     });
     const data = await response.json();
     return { ok: response.ok, status: response.status, data };
