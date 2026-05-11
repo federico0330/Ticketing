@@ -5,7 +5,7 @@ using TicketingSystem.Domain.Exceptions;
 
 namespace TicketingSystem.Application.Handlers;
 
-public class GetSectorsByEventIdHandler
+public class GetSectorsByEventIdHandler : IGetSectorsByEventIdHandler
 {
     private readonly ISectorRepository _sectorRepository;
     private readonly IEventRepository _eventRepository;
@@ -16,14 +16,13 @@ public class GetSectorsByEventIdHandler
         _eventRepository = eventRepository;
     }
 
-    public async Task<IEnumerable<SectorDto>> HandleAsync(GetSectorsByEventIdQuery query)
+    public async Task<IEnumerable<SectorDto>> HandleAsync(GetSectorsByEventIdQuery query, CancellationToken cancellationToken = default)
     {
-        // Validamos que el evento exista antes de consultar sus sectores
-        var eventExists = await _eventRepository.GetByIdAsync(query.EventId);
+        var eventExists = await _eventRepository.GetByIdAsync(query.EventId, cancellationToken);
         if (eventExists is null)
             throw new EventNotFoundException(query.EventId);
 
-        var sectors = await _sectorRepository.GetByEventIdAsync(query.EventId);
+        var sectors = await _sectorRepository.GetByEventIdAsync(query.EventId, cancellationToken);
 
         return sectors.Select(s => new SectorDto(
             s.Id,

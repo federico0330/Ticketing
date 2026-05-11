@@ -1,5 +1,4 @@
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
@@ -9,104 +8,124 @@ using TicketingSystem.Domain.Exceptions;
 
 namespace TicketingSystem.Application.Handlers;
 
-public class CreateReservationHandler
+public class CreateReservationHandler : ICreateReservationHandler
 {
     private readonly ISeatRepository _seatRepository;
     private readonly IReservationRepository _reservationRepository;
     private readonly IAuditLogRepository _auditLogRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CreateReservationHandler> _logger;
 
-    // El tiempo de expiración de la reserva: 5 minutos (configurable)
     private static readonly TimeSpan ReservationDuration = TimeSpan.FromMinutes(5);
 
     public CreateReservationHandler(
         ISeatRepository seatRepository,
         IReservationRepository reservationRepository,
         IAuditLogRepository auditLogRepository,
+        IUnitOfWork unitOfWork,
         ILogger<CreateReservationHandler> logger)
     {
         _seatRepository = seatRepository;
         _reservationRepository = reservationRepository;
         _auditLogRepository = auditLogRepository;
+        _unitOfWork = unitOfWork;
         _logger = logger;
     }
 
-    public async Task<ReservationDto> HandleAsync(CreateReservationCommand command)
+    public async Task<ReservationDto> HandleAsync(CreateReservationCommand command, CancellationToken cancellationToken = default)
     {
-        // Paso 1: Registrar el INTENTO de reserva en auditoría (incluso si falla)
-        await _auditLogRepository.CreateAsync(new AuditLog
-        {
-            Id = Guid.NewGuid(),
-            UserId = command.UserId,
-            Action = "RESERVE_ATTEMPT",
-            EntityType = "Seat",
-            EntityId = command.SeatId.ToString(),
-            Details = JsonSerializer.Serialize(new { command.SeatId, command.UserId }),
-            CreatedAt = DateTime.UtcNow
-        });
+        await LogAuditAsync(command.UserId, "RESERVE_ATTEMPT", "Seat", command.SeatId.ToString(), new { command.SeatId, command.UserId }, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Paso 2: Verificar que el asiento existe
-        var seat = await _seatRepository.GetByIdAsync(command.SeatId);
-        if (seat is null)
-            throw new SeatNotFoundException(command.SeatId);
-
-        // Paso 3: Verificar que el asiento está disponible
-        if (seat.Status != "Available")
-            throw new SeatNotAvailableException(command.SeatId);
-
-        // Paso 4: Cambiar el estado del asiento a "Reserved"
-        seat.Status = "Reserved";
-        seat.Version += 1; // Incrementar versión para el Optimistic Locking
-        
-        try 
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        try
         {
-            await _seatRepository.UpdateAsync(seat);
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            _logger.LogError(ex, "[CODE-ERROR] - Intento de reserva en butaca ya tomada (Concurrency Triggered). SeatId: {SeatId}", command.SeatId);
-            throw new SeatNotAvailableException(command.SeatId);
-        }
+            var seat = await GetAndValidateSeatAsync(command.SeatId, cancellationToken);
+            seat.Status = "Reserved";
+            seat.Version += 1;
+            await _seatRepository.UpdateAsync(seat, cancellationToken);
 
-        // Paso 5: Crear la reserva con fecha de expiración en 5 minutos
-        var now = DateTime.UtcNow;
-        var reservation = new Reservation
-        {
-            Id = Guid.NewGuid(),
-            UserId = command.UserId,
-            SeatId = command.SeatId,
-            Status = "Pending",
-            ReservedAt = now,
-            ExpiresAt = now.Add(ReservationDuration)
-        };
-        await _reservationRepository.CreateAsync(reservation);
+            var reservation = await BuildReservationAsync(command.UserId, command.SeatId);
+            await _reservationRepository.CreateAsync(reservation, cancellationToken);
 
-        // Paso 6: Registrar el ÉXITO de la reserva en auditoría
-        await _auditLogRepository.CreateAsync(new AuditLog
-        {
-            Id = Guid.NewGuid(),
-            UserId = command.UserId,
-            Action = "RESERVE_SUCCESS",
-            EntityType = "Reservation",
-            EntityId = reservation.Id.ToString(),
-            Details = JsonSerializer.Serialize(new
+            await LogAuditAsync(command.UserId, "RESERVE_SUCCESS", "Reservation", reservation.Id.ToString(), new
             {
                 ReservationId = reservation.Id,
                 command.SeatId,
                 command.UserId,
                 reservation.ExpiresAt
-            }),
-            CreatedAt = DateTime.UtcNow
-        });
+            }, cancellationToken);
 
-        // Paso 7: Retornar el DTO con los datos de la reserva creada
-        return new ReservationDto(
-            reservation.Id,
-            reservation.UserId,
-            reservation.SeatId,
-            reservation.Status,
-            reservation.ReservedAt,
-            reservation.ExpiresAt
-        );
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitTransactionAsync(cancellationToken);
+
+            return new ReservationDto(
+                reservation.Id,
+                reservation.UserId,
+                reservation.SeatId,
+                reservation.Status,
+                reservation.ReservedAt,
+                reservation.ExpiresAt
+            );
+        }
+        catch (ConcurrencyException ex)
+        {
+            await HandleReservationFailureAsync(command.UserId, command.SeatId, "Concurrency conflict", ex, cancellationToken);
+            throw;
+        }
+        catch (Exception ex)
+        {
+            await HandleReservationFailureAsync(command.UserId, command.SeatId, "Error", ex, cancellationToken);
+            throw;
+        }
+    }
+
+    private async Task<Seat> GetAndValidateSeatAsync(Guid seatId, CancellationToken cancellationToken)
+    {
+        var seat = await _seatRepository.GetByIdAsync(seatId, cancellationToken);
+        if (seat is null)
+            throw new SeatNotFoundException(seatId);
+        if (seat.Status != "Available")
+            throw new SeatNotAvailableException(seatId);
+        return seat;
+    }
+
+    private Task<Reservation> BuildReservationAsync(int userId, Guid seatId)
+    {
+        var now = DateTime.UtcNow;
+        var reservation = new Reservation
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            SeatId = seatId,
+            Status = "Pending",
+            ReservedAt = now,
+            ExpiresAt = now.Add(ReservationDuration)
+        };
+        return Task.FromResult(reservation);
+    }
+
+    private async Task LogAuditAsync(int userId, string action, string entityType, string entityId, object details, CancellationToken cancellationToken)
+    {
+        await _auditLogRepository.CreateAsync(new AuditLog
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Action = action,
+            EntityType = entityType,
+            EntityId = entityId,
+            Details = JsonSerializer.Serialize(details),
+            CreatedAt = DateTime.UtcNow
+        }, cancellationToken);
+    }
+
+    private async Task HandleReservationFailureAsync(int userId, Guid seatId, string reason, Exception ex, CancellationToken cancellationToken)
+    {
+        await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+        _unitOfWork.ClearChanges();
+        await LogAuditAsync(userId, "RESERVE_FAILED", "Seat", seatId.ToString(), new { seatId, userId, Reason = reason, Error = ex.Message }, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        if (reason == "Concurrency conflict")
+            _logger.LogWarning(ex, "[CODE-ERROR] - Intento de reserva en butaca ya tomada (Concurrency Triggered). SeatId: {SeatId}", seatId);
     }
 }

@@ -13,9 +13,9 @@ public class AuditLogRepository : IAuditLogRepository
         _context = context;
     }
 
-    public async Task CreateAsync(AuditLog auditLog)
+    public Task CreateAsync(AuditLog auditLog, CancellationToken cancellationToken = default)
     {
         _context.AuditLogs.Add(auditLog);
-        await _context.SaveChangesAsync();
+        return Task.CompletedTask;
     }
 }

@@ -18,7 +18,6 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // --- Configuración de EVENT ---
         modelBuilder.Entity<Event>(builder =>
         {
             builder.ToTable("EVENT");
@@ -29,7 +28,6 @@ public class AppDbContext : DbContext
             builder.Property(e => e.Status).IsRequired().HasDefaultValue("Active");
         });
 
-        // --- Configuración de SECTOR ---
         modelBuilder.Entity<Sector>(builder =>
         {
             builder.ToTable("SECTOR");
@@ -43,7 +41,6 @@ public class AppDbContext : DbContext
                    .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // --- Configuración de SEAT ---
         modelBuilder.Entity<Seat>(builder =>
         {
             builder.ToTable("SEAT");
@@ -52,15 +49,17 @@ public class AppDbContext : DbContext
             builder.Property(s => s.RowIdentifier).IsRequired();
             builder.Property(s => s.SeatNumber).IsRequired();
             builder.Property(s => s.Status).IsRequired().HasDefaultValue("Available");
+
+            // Habilita la verificación de concurrencia para prevenir condiciones de carrera al actualizar asientos
             builder.Property(s => s.Version).IsRequired().HasDefaultValue(0)
-                   .IsConcurrencyToken(); // Marca el campo para Optimistic Locking
+                   .IsConcurrencyToken(); 
+                   
             builder.HasOne(s => s.Sector)
                    .WithMany(sec => sec.Seats)
                    .HasForeignKey(s => s.SectorId)
                    .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // --- Configuración de USER ---
         modelBuilder.Entity<User>(builder =>
         {
             builder.ToTable("USER");
@@ -71,7 +70,6 @@ public class AppDbContext : DbContext
             builder.Property(u => u.PasswordHash).IsRequired();
         });
 
-        // --- Configuración de RESERVATION ---
         modelBuilder.Entity<Reservation>(builder =>
         {
             builder.ToTable("RESERVATION");
@@ -90,7 +88,6 @@ public class AppDbContext : DbContext
                    .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // --- Configuración de AUDIT_LOG ---
         modelBuilder.Entity<AuditLog>(builder =>
         {
             builder.ToTable("AUDIT_LOG");

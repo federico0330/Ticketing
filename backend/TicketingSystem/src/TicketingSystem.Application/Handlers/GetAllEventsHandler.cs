@@ -4,7 +4,7 @@ using TicketingSystem.Application.Queries;
 
 namespace TicketingSystem.Application.Handlers;
 
-public class GetAllEventsHandler
+public class GetAllEventsHandler : IGetAllEventsHandler
 {
     private readonly IEventRepository _eventRepository;
 
@@ -13,9 +13,9 @@ public class GetAllEventsHandler
         _eventRepository = eventRepository;
     }
 
-    public async Task<IEnumerable<EventDto>> HandleAsync(GetAllEventsQuery query)
+    public async Task<IEnumerable<EventDto>> HandleAsync(GetAllEventsQuery query, CancellationToken cancellationToken = default)
     {
-        var events = await _eventRepository.GetAllAsync();
+        var events = await _eventRepository.GetAllAsync(cancellationToken);
 
         return events.Select(e => new EventDto(
             e.Id,

@@ -9,7 +9,6 @@ public class Reservation
     public DateTime ReservedAt { get; set; }
     public DateTime ExpiresAt { get; set; }
 
-    // Navegación
     public User User { get; set; } = null!;
     public Seat Seat { get; set; } = null!;
 }

@@ -8,7 +8,6 @@ public class Sector
     public decimal Price { get; set; }
     public int Capacity { get; set; }
 
-    // Navegación
     public Event Event { get; set; } = null!;
     public ICollection<Seat> Seats { get; set; } = new List<Seat>();
 }

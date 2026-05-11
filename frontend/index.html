@@ -10,6 +10,17 @@
 </head>
 
 <body class="bg-dark text-light" data-sys-render="auto">
+  <!-- Banner de Reserva Temporal -->
+  <div id="reservation-banner" class="reservation-banner d-none">
+    <div class="container d-flex justify-content-between align-items-center py-2">
+      <div class="d-flex align-items-center">
+        <span class="me-3 fw-bold">🕒 Tiempo restante: <span id="timer-display" class="font-monospace text-warning">05:00</span></span>
+        <span class="d-none d-md-inline small text-muted">Completa tu pago para asegurar tu asiento.</span>
+      </div>
+      <button id="btn-pay-reservation" class="btn btn-sm btn-success fw-bold px-4 shadow">Pagar Ahora</button>
+    </div>
+  </div>
+
   <nav class="navbar navbar-dark mb-4 shadow-lg custom-navbar">
     <div class="container">
       <span class="navbar-brand mb-0 h1">🎫 Ticketing System</span>

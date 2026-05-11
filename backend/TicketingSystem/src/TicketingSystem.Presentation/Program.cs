@@ -6,11 +6,9 @@ using TicketingSystem.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ─── Base de Datos ─────────────────────────────────────────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ─── Repositorios (Infrastructure → Application interfaces) ────────────────
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<ISectorRepository, SectorRepository>();
 builder.Services.AddScoped<ISeatRepository, SeatRepository>();
@@ -18,33 +16,30 @@ builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// ─── Handlers (Application) ────────────────────────────────────────────────
-builder.Services.AddScoped<GetAllEventsHandler>();
-builder.Services.AddScoped<GetSectorsByEventIdHandler>();
-builder.Services.AddScoped<GetSeatsBySectorIdHandler>();
-builder.Services.AddScoped<CreateReservationHandler>();
-builder.Services.AddScoped<LoginHandler>();
+// Registramos dependencias por interfaz para facilitar testing y desacoplar la implementación
+builder.Services.AddScoped<IGetAllEventsHandler, GetAllEventsHandler>();
+builder.Services.AddScoped<IGetSectorsByEventIdHandler, GetSectorsByEventIdHandler>();
+builder.Services.AddScoped<IGetSeatsBySectorIdHandler, GetSeatsBySectorIdHandler>();
+builder.Services.AddScoped<IGetUserReservationsHandler, GetUserReservationsHandler>();
+builder.Services.AddScoped<ICreateReservationHandler, CreateReservationHandler>();
+builder.Services.AddScoped<IConfirmPaymentHandler, ConfirmPaymentHandler>();
+builder.Services.AddScoped<ILoginHandler, LoginHandler>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// ─── Controllers y JSON ────────────────────────────────────────────────────
+builder.Services.AddHostedService<TicketingSystem.Infrastructure.BackgroundServices.ReservationExpirationWorker>();
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Serializar enums como strings y respetar los nombres de propiedades
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
-// ─── Swagger / OpenAPI ─────────────────────────────────────────────────────
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new() { Title = "Ticketing System API", Version = "v1" });
-    // Incluir comentarios XML para documentar endpoints
-    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath)) c.IncludeXmlComments(xmlPath);
 });
 
-// ─── CORS (para que el frontend pueda consumir la API) ─────────────────────
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -53,7 +48,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ─── Aplicar migraciones y seed automáticamente al iniciar ─────────────────
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -65,8 +59,8 @@ using (var scope = app.Services.CreateScope())
     {
         try
         {
-            await db.Database.MigrateAsync(); // Aplica migraciones pendientes
-            await DbSeeder.SeedAsync(db);     // Precarga datos si la BD está vacía
+            await db.Database.MigrateAsync(); 
+            await DbSeeder.SeedAsync(db);     
             logger.LogInformation("Database migrated and seeded successfully.");
             break;
         }
@@ -83,7 +77,8 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// ─── Middleware Pipeline ────────────────────────────────────────────────────
+app.UseMiddleware<TicketingSystem.Presentation.Middleware.GlobalExceptionHandler>();
+
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Append("X-Api-version", "1.0");
@@ -97,7 +92,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
-app.UseAuthorization();
 app.MapControllers();
 
 if (app.Environment.IsDevelopment())

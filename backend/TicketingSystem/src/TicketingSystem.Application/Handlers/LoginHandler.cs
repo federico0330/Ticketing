@@ -3,7 +3,7 @@ using TicketingSystem.Application.Interfaces;
 
 namespace TicketingSystem.Application.Handlers;
 
-public class LoginHandler
+public class LoginHandler : ILoginHandler
 {
     private readonly IUserRepository _userRepository;
 
@@ -12,9 +12,9 @@ public class LoginHandler
         _userRepository = userRepository;
     }
 
-    public async Task<LoginResponse?> HandleAsync(LoginRequest request)
+    public async Task<LoginResponse?> HandleAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email);
+        var user = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
 
         if (user == null || user.PasswordHash != request.Password)
         {

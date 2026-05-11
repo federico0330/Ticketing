@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Application.DTOs;
-using TicketingSystem.Application.Handlers;
+using TicketingSystem.Application.Interfaces;
 
 namespace TicketingSystem.Presentation.Controllers;
 
@@ -9,19 +9,19 @@ namespace TicketingSystem.Presentation.Controllers;
 [Produces("application/json")]
 public class AuthController : ControllerBase
 {
-    private readonly LoginHandler _loginHandler;
+    private readonly ILoginHandler _loginHandler;
 
-    public AuthController(LoginHandler loginHandler)
+    public AuthController(ILoginHandler loginHandler)
     {
         _loginHandler = loginHandler;
     }
 
-    [HttpPost("login")]
+    [HttpPost("sessions")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        var response = await _loginHandler.HandleAsync(request);
+        var response = await _loginHandler.HandleAsync(request, cancellationToken);
 
         if (response == null)
         {

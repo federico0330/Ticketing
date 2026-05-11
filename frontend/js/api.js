@@ -1,38 +1,35 @@
 const BASE_URL = 'http://localhost:5000/api/v1';
 
-/**
- * Trae todos los eventos del backend.
- */
 export async function fetchEvents() {
     const response = await fetch(`${BASE_URL}/events`);
     if (!response.ok) throw new Error(`Error al obtener eventos: ${response.status}`);
     return response.json();
 }
 
-/**
- * Trae los sectores de un evento.
- */
 export async function fetchSectorsByEvent(eventId) {
     const response = await fetch(`${BASE_URL}/events/${eventId}/sectors`);
     if (!response.ok) throw new Error(`Error al obtener sectores: ${response.status}`);
     return response.json();
 }
 
-/**
- * Trae los asientos de un sector.
- */
-export async function fetchSeatsBySector(sectorId) {
-    const response = await fetch(`${BASE_URL}/sectors/${sectorId}/seats`);
+export async function fetchSeatsBySector(sectorId, userId) {
+    const url = userId 
+        ? `${BASE_URL}/sectors/${sectorId}/seats?userId=${userId}`
+        : `${BASE_URL}/sectors/${sectorId}/seats`;
+    const response = await fetch(url);
     if (!response.ok) throw new Error(`Error al obtener asientos: ${response.status}`);
     return response.json();
 }
 
-/**
- * Intenta loguear al usuario.
- */
+export async function fetchMyReservations(userId) {
+    const response = await fetch(`${BASE_URL}/reservations/mine?userId=${userId}`);
+    if (!response.ok) throw new Error(`Error al obtener reservas: ${response.status}`);
+    return response.json();
+}
+
 export async function login(email, password) {
     try {
-        const response = await fetch(`${BASE_URL}/auth/login`, {
+        const response = await fetch(`${BASE_URL}/auth/sessions`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ Email: email, Password: password })
@@ -44,9 +41,6 @@ export async function login(email, password) {
     }
 }
 
-/**
- * Crea una reserva para un asiento.
- */
 export async function createReservation(seatId, userId) {
     const response = await fetch(`${BASE_URL}/seats/reservations`, {
         method: 'POST',
@@ -57,9 +51,16 @@ export async function createReservation(seatId, userId) {
     return { ok: response.ok, status: response.status, data };
 }
 
-/**
- * Limpia la sesión.
- */
+export async function confirmPayment(reservationId, cardToken) {
+    const response = await fetch(`${BASE_URL}/reservations/${reservationId}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ReservationId: reservationId, CardToken: cardToken })
+    });
+    const data = await response.json();
+    return { ok: response.ok, status: response.status, data };
+}
+
 export function logout() {
     localStorage.removeItem('currentUser');
 }

@@ -1,28 +1,43 @@
 using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Application.Queries;
+using TicketingSystem.Domain.Entities;
 
 namespace TicketingSystem.Application.Handlers;
 
-public class GetSeatsBySectorIdHandler
+public class GetSeatsBySectorIdHandler : IGetSeatsBySectorIdHandler
 {
     private readonly ISeatRepository _seatRepository;
+    private readonly IReservationRepository _reservationRepository;
 
-    public GetSeatsBySectorIdHandler(ISeatRepository seatRepository)
+    public GetSeatsBySectorIdHandler(
+        ISeatRepository seatRepository,
+        IReservationRepository reservationRepository)
     {
         _seatRepository = seatRepository;
+        _reservationRepository = reservationRepository;
     }
 
-    public async Task<IEnumerable<SeatDto>> HandleAsync(GetSeatsBySectorIdQuery query)
+    public async Task<IEnumerable<SeatDto>> HandleAsync(GetSeatsBySectorIdQuery query, CancellationToken cancellationToken = default)
     {
-        var seats = await _seatRepository.GetBySectorIdAsync(query.SectorId);
+        var seats = await _seatRepository.GetBySectorIdAsync(query.SectorId, cancellationToken);
+
+        HashSet<Guid>? userReservedSeatIds = null;
+        if (query.CurrentUserId.HasValue)
+        {
+            var userReservations = await _reservationRepository.GetByUserIdAsync(query.CurrentUserId.Value, onlyPending: true, cancellationToken);
+            userReservedSeatIds = new HashSet<Guid>(
+                userReservations.Where(r => r.Status == "Pending").Select(r => r.SeatId)
+            );
+        }
 
         return seats.Select(s => new SeatDto(
             s.Id,
             s.SectorId,
             s.RowIdentifier,
             s.SeatNumber,
-            s.Status
+            s.Status,
+            userReservedSeatIds != null && userReservedSeatIds.Contains(s.Id)
         ));
     }
 }

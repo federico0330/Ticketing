@@ -9,7 +9,7 @@ Para inicializar todo el ecosistema (Base de Datos, Backend y Frontend) con un s
 
 ```bash
 
-docker-compose up --build -d
+docker compose up --build -d
 
 ```
 

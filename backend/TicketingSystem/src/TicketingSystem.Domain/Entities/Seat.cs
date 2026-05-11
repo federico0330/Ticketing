@@ -8,10 +8,9 @@ public class Seat
     public int SeatNumber { get; set; }
     public string Status { get; set; } = "Available";
 
-    // Campo Version obligatorio para Optimistic Locking
+    // Se utiliza control de concurrencia para evitar que dos usuarios reserven la misma butaca simultáneamente
     public int Version { get; set; } = 0;
 
-    // Navegación
     public Sector Sector { get; set; } = null!;
     public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
 }

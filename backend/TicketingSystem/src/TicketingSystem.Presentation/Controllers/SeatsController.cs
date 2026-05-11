@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
-using TicketingSystem.Application.Handlers;
+using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Application.Queries;
-using TicketingSystem.Domain.Exceptions;
 
 namespace TicketingSystem.Presentation.Controllers;
 
@@ -12,51 +11,37 @@ namespace TicketingSystem.Presentation.Controllers;
 [Produces("application/json")]
 public class SeatsController : ControllerBase
 {
-    private readonly GetSeatsBySectorIdHandler _getSeatsBySectorIdHandler;
-    private readonly CreateReservationHandler _createReservationHandler;
+    private readonly IGetSeatsBySectorIdHandler _getSeatsBySectorIdHandler;
+    private readonly ICreateReservationHandler _createReservationHandler;
 
     public SeatsController(
-        GetSeatsBySectorIdHandler getSeatsBySectorIdHandler,
-        CreateReservationHandler createReservationHandler)
+        IGetSeatsBySectorIdHandler getSeatsBySectorIdHandler,
+        ICreateReservationHandler createReservationHandler)
     {
         _getSeatsBySectorIdHandler = getSeatsBySectorIdHandler;
         _createReservationHandler = createReservationHandler;
     }
 
-    /// Obtiene el estado actual de todos los asientos de un sector.
     [HttpGet("sectors/{sectorId}/seats")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSeatsBySector(int sectorId)
+    public async Task<IActionResult> GetSeatsBySector(int sectorId, CancellationToken cancellationToken)
     {
-        var seats = await _getSeatsBySectorIdHandler.HandleAsync(new GetSeatsBySectorIdQuery(sectorId));
+        var seats = await _getSeatsBySectorIdHandler.HandleAsync(new GetSeatsBySectorIdQuery(sectorId), cancellationToken);
         return Ok(seats);
     }
 
-    /// Intenta reservar un asiento para un usuario.
     [HttpPost("seats/reservations")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> CreateReservation([FromBody] CreateReservationRequest request)
+    public async Task<IActionResult> CreateReservation([FromBody] CreateReservationRequest request, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
             return BadRequest(new { Error = "VALIDATION_ERROR", Message = "Datos de entrada inválidos." });
 
-        try
-        {
-            var command = new CreateReservationCommand(request.SeatId, request.UserId);
-            var reservation = await _createReservationHandler.HandleAsync(command);
-            return StatusCode(StatusCodes.Status201Created, reservation);
-        }
-        catch (SeatNotFoundException ex)
-        {
-            return NotFound(new { Error = "NOT_FOUND", ex.Message });
-        }
-        catch (SeatNotAvailableException ex)
-        {
-            // 409 Conflict: el asiento está tomado, no es un error de servidor
-            return Conflict(new { Error = "SEAT_NOT_AVAILABLE", ex.Message });
-        }
+        var command = new CreateReservationCommand(request.SeatId, request.UserId);
+        var reservation = await _createReservationHandler.HandleAsync(command, cancellationToken);
+        return StatusCode(StatusCodes.Status201Created, reservation);
     }
 }
