@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TicketingSystem.Application.Security;
 using TicketingSystem.Domain.Entities;
 
 namespace TicketingSystem.Infrastructure.Persistence;
@@ -7,19 +8,18 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        if (await context.Events.AnyAsync()) return;
-
-        for (int i = 1; i <= 5; i++)
+        if (!await context.Users.AnyAsync())
         {
-            var user = new User
-            {
-                Name = $"Usuario {i}",
-                Email = $"user{i}@ticketing.com",
-                PasswordHash = $"user{i}" 
-            };
-            context.Users.Add(user);
+            context.Users.AddRange(
+                new User { Name = "Administrador", Email = "admin@ticketing.com",
+                           PasswordHash = PasswordHasher.Hash("admin") },
+                new User { Name = "Usuario",       Email = "user@ticketing.com",
+                           PasswordHash = PasswordHasher.Hash("user") }
+            );
+            await context.SaveChangesAsync();
         }
-        await context.SaveChangesAsync();
+
+        if (await context.Events.AnyAsync()) return;
 
         var concertEvent = new Event
         {
