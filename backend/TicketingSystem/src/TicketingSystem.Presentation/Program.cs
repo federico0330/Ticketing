@@ -28,6 +28,7 @@ builder.Services.AddScoped<IGetUserReservationsHandler, GetUserReservationsHandl
 builder.Services.AddScoped<ICreateReservationHandler, CreateReservationHandler>();
 builder.Services.AddScoped<ICreateEventHandler, CreateEventHandler>();
 builder.Services.AddScoped<IUpdateEventHandler, UpdateEventHandler>();
+builder.Services.AddScoped<IDeleteEventHandler, DeleteEventHandler>();
 builder.Services.AddScoped<IConfirmPaymentHandler, ConfirmPaymentHandler>();
 builder.Services.AddScoped<ILoginHandler, LoginHandler>();
 builder.Services.AddScoped<IRegisterHandler, RegisterHandler>();

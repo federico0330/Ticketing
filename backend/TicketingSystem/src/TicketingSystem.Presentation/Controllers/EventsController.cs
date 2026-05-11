@@ -16,17 +16,20 @@ public class EventsController : ControllerBase
     private readonly IGetSectorsByEventIdHandler _getSectorsByEventIdHandler;
     private readonly ICreateEventHandler _createEventHandler;
     private readonly IUpdateEventHandler _updateEventHandler;
+    private readonly IDeleteEventHandler _deleteEventHandler;
 
     public EventsController(
         IGetAllEventsHandler getAllEventsHandler,
         IGetSectorsByEventIdHandler getSectorsByEventIdHandler,
         ICreateEventHandler createEventHandler,
-        IUpdateEventHandler updateEventHandler)
+        IUpdateEventHandler updateEventHandler,
+        IDeleteEventHandler deleteEventHandler)
     {
         _getAllEventsHandler = getAllEventsHandler;
         _getSectorsByEventIdHandler = getSectorsByEventIdHandler;
         _createEventHandler = createEventHandler;
         _updateEventHandler = updateEventHandler;
+        _deleteEventHandler = deleteEventHandler;
     }
 
     [HttpPost]
@@ -56,6 +59,17 @@ public class EventsController : ControllerBase
         var command = new UpdateEventCommand(id, request.Name, request.EventDate, request.Venue);
         var result = await _updateEventHandler.HandleAsync(command, cancellationToken);
         return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
+    {
+        var command = new DeleteEventCommand(id);
+        await _deleteEventHandler.HandleAsync(command, cancellationToken);
+        return NoContent();
     }
 
     [HttpGet("{id}/sectors")]
