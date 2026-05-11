@@ -34,7 +34,12 @@ public class CreateReservationHandler : ICreateReservationHandler
 
     public async Task<ReservationDto> HandleAsync(CreateReservationCommand command, CancellationToken cancellationToken = default)
     {
-        await LogAuditAsync(command.UserId, "RESERVE_ATTEMPT", "Seat", command.SeatId.ToString(), new { command.SeatId, command.UserId }, cancellationToken);
+        await LogAuditAsync(command.UserId, "RESERVE_ATTEMPT", "Seat", command.SeatId.ToString(), new
+        {
+            command.SeatId,
+            command.UserId,
+            TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        }, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
@@ -53,7 +58,8 @@ public class CreateReservationHandler : ICreateReservationHandler
                 ReservationId = reservation.Id,
                 command.SeatId,
                 command.UserId,
-                reservation.ExpiresAt
+                reservation.ExpiresAt,
+                TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             }, cancellationToken);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -123,7 +129,14 @@ public class CreateReservationHandler : ICreateReservationHandler
     {
         await _unitOfWork.RollbackTransactionAsync(cancellationToken);
         _unitOfWork.ClearChanges();
-        await LogAuditAsync(userId, "RESERVE_FAILED", "Seat", seatId.ToString(), new { seatId, userId, Reason = reason, Error = ex.Message }, cancellationToken);
+        await LogAuditAsync(userId, "RESERVE_FAILED", "Seat", seatId.ToString(), new
+        {
+            SeatId = seatId,
+            UserId = userId,
+            Reason = reason,
+            Error = ex.Message,
+            TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        }, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         if (reason == "Concurrency conflict")
             _logger.LogWarning(ex, "[CODE-ERROR] - Intento de reserva en butaca ya tomada (Concurrency Triggered). SeatId: {SeatId}", seatId);

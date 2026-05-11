@@ -63,7 +63,12 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
                 Action = "PAYMENT_SUCCESS",
                 EntityType = "Reservation",
                 EntityId = reservation.Id.ToString(),
-                Details = System.Text.Json.JsonSerializer.Serialize(new { command.ReservationId, command.CardToken }),
+                Details = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    command.ReservationId,
+                    command.CardToken,
+                    TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                }),
                 CreatedAt = DateTime.UtcNow
             };
             await _auditLogRepository.CreateAsync(auditLog, cancellationToken);
@@ -91,7 +96,12 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
                 Action = "PAYMENT_FAILED",
                 EntityType = "Reservation",
                 EntityId = command.ReservationId.ToString(),
-                Details = System.Text.Json.JsonSerializer.Serialize(new { command.ReservationId, Error = ex.Message }),
+                Details = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    command.ReservationId,
+                    Error = ex.Message,
+                    TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                }),
                 CreatedAt = DateTime.UtcNow
             }, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

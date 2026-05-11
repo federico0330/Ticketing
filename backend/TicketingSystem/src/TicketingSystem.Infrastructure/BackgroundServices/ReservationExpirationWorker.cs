@@ -69,16 +69,22 @@ public class ReservationExpirationWorker : BackgroundService
                 {
                     Id = Guid.NewGuid(),
                     UserId = null, // El usuario es nulo porque la expiración es una tarea automática del sistema
-                    Action = "RESERVE_EXPIRED",
+                    Action = "RESERVATION_EXPIRED",
                     EntityType = "Reservation",
                     EntityId = reservation.Id.ToString(),
-                    Details = System.Text.Json.JsonSerializer.Serialize(new { reservation.Id, reservation.SeatId }),
+                    Details = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        reservation.Id,
+                        reservation.SeatId,
+                        Status = "SUCCESS",
+                        TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    }),
                     CreatedAt = DateTime.UtcNow
                 });
 
                 await unitOfWork.SaveChangesAsync();
                 await unitOfWork.CommitTransactionAsync();
-                
+
                 _logger.LogInformation("Reservation {ReservationId} expired and seat {SeatId} released.", reservation.Id, reservation.SeatId);
             }
             catch (Exception ex)
@@ -86,6 +92,32 @@ public class ReservationExpirationWorker : BackgroundService
                 await unitOfWork.RollbackTransactionAsync();
                 unitOfWork.ClearChanges();
                 _logger.LogError(ex, "Failed to expire reservation {ReservationId}.", reservation.Id);
+
+                try
+                {
+                    await auditLogRepository.CreateAsync(new TicketingSystem.Domain.Entities.AuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = null,
+                        Action = "RESERVATION_EXPIRED",
+                        EntityType = "Reservation",
+                        EntityId = reservation.Id.ToString(),
+                        Details = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            reservation.Id,
+                            reservation.SeatId,
+                            Status = "FAILED",
+                            Error = ex.Message,
+                            TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                        }),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await unitOfWork.SaveChangesAsync();
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogError(auditEx, "Failed to write RESERVATION_EXPIRED FAILED audit for reservation {ReservationId}.", reservation.Id);
+                }
             }
         }
     }

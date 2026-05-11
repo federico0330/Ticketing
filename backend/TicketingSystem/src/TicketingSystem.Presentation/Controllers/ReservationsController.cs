@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
@@ -23,6 +24,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPost("{id}/payments")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -45,6 +47,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpGet("mine")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyReservations([FromQuery] int userId, CancellationToken cancellationToken)
     {

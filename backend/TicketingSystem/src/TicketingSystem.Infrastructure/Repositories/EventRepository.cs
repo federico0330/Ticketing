@@ -19,4 +19,10 @@ public class EventRepository : IEventRepository
 
     public async Task<Event?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         => await _context.Events.FindAsync(new object[] { id }, cancellationToken);
+
+    public Task<Event> CreateAsync(Event @event, CancellationToken cancellationToken = default)
+    {
+        _context.Events.Add(@event);
+        return Task.FromResult(@event);
+    }
 }

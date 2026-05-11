@@ -93,6 +93,12 @@ h2.text-secondary {
     box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
 }
 
+.seat-inactive {
+    background-color: #334155;
+    opacity: 0.4;
+    cursor: pointer;
+}
+
 .seat-reserved {
     background-color: var(--seat-reserved);
     cursor: not-allowed;
@@ -218,6 +224,34 @@ h2.text-secondary {
 @keyframes slideDown {
     from { transform: translateY(-100%); }
     to { transform: translateY(0); }
+}
+
+/* Menu Administrador en Tarjetas de Eventos */
+.event-card .event-admin-menu {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.event-card:hover .event-admin-menu {
+    opacity: 1;
+}
+
+.dropdown-toggle-no-caret::after {
+    display: none !important;
+}
+
+.event-admin-menu .dropdown-menu {
+    background-color: var(--surface-dark);
+    border-color: rgba(255,255,255,0.1);
+}
+
+.event-admin-menu .dropdown-item {
+    color: var(--text-main);
+}
+
+.event-admin-menu .dropdown-item:hover {
+    background-color: var(--surface-hover);
+    color: #fff;
 }
 
 #timer-display {

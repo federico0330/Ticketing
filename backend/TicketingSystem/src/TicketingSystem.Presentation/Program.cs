@@ -1,4 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models;
 using TicketingSystem.Application.Handlers;
 using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Infrastructure.Persistence;
@@ -22,8 +26,10 @@ builder.Services.AddScoped<IGetSectorsByEventIdHandler, GetSectorsByEventIdHandl
 builder.Services.AddScoped<IGetSeatsBySectorIdHandler, GetSeatsBySectorIdHandler>();
 builder.Services.AddScoped<IGetUserReservationsHandler, GetUserReservationsHandler>();
 builder.Services.AddScoped<ICreateReservationHandler, CreateReservationHandler>();
+builder.Services.AddScoped<ICreateEventHandler, CreateEventHandler>();
 builder.Services.AddScoped<IConfirmPaymentHandler, ConfirmPaymentHandler>();
 builder.Services.AddScoped<ILoginHandler, LoginHandler>();
+builder.Services.AddScoped<IRegisterHandler, RegisterHandler>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 builder.Services.AddHostedService<TicketingSystem.Infrastructure.BackgroundServices.ReservationExpirationWorker>();
@@ -34,10 +40,50 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
+// JWT Authentication configuration
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
+        };
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "Ticketing System API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ticketing System API", Version = "v1" });
+
+    // Swagger JWT
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 builder.Services.AddCors(options =>
@@ -92,6 +138,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 if (app.Environment.IsDevelopment())

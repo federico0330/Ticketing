@@ -15,16 +15,23 @@ const navbarUsername = document.getElementById('navbar-username');
 const btnLogout = document.getElementById('btn-logout');
 const loginForm = document.getElementById('login-form');
 
+const btnAdmin = document.getElementById('btn-admin');
+const adminSection = document.getElementById('admin-section');
+const loginCard = document.getElementById('login-card');
+const registerCard = document.getElementById('register-card');
+const registerForm = document.getElementById('register-form');
+
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-        document.getElementById('btn-back-events').addEventListener('click', showEvents);
+    document.getElementById('btn-back-events').addEventListener('click', showEvents);
     document.getElementById('btn-back-sectors').addEventListener('click', showSectors);
     
-        loginForm.addEventListener('submit', handleLogin);
+    loginForm.addEventListener('submit', handleLogin);
     btnLogout.addEventListener('click', handleLogout);
+    if (btnAdmin) btnAdmin.addEventListener('click', showAdminSection);
 
-        const savedUser = localStorage.getItem('currentUser');
+    const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         const user = JSON.parse(savedUser);
         showAuthenticatedUI(user);
@@ -72,8 +79,13 @@ function handleLogout() {
     eventsSection.classList.add('d-none');
     sectorsSection.classList.add('d-none');
     seatsSection.classList.add('d-none');
+    if(adminSection) adminSection.classList.add('d-none');
+    if(btnAdmin) btnAdmin.classList.add('d-none');
     loginSection.classList.remove('d-none');
     loginForm.reset();
+    if(registerForm) registerForm.reset();
+    loginCard.classList.remove('d-none');
+    registerCard.classList.add('d-none');
 }
 
 function showAuthenticatedUI(user) {
@@ -82,11 +94,25 @@ function showAuthenticatedUI(user) {
     userInfo.classList.add('d-flex');
     eventsSection.classList.remove('d-none');
     navbarUsername.innerText = `Hola, ${user.Name}`;
+    
+    if (user.Role === 'Admin') {
+        btnAdmin.classList.remove('d-none');
+    } else {
+        btnAdmin.classList.add('d-none');
+    }
+}
+
+function showAdminSection() {
+    eventsSection.classList.add('d-none');
+    sectorsSection.classList.add('d-none');
+    seatsSection.classList.add('d-none');
+    adminSection.classList.remove('d-none');
 }
 
 export function showEvents() {
     sectorsSection.classList.add('d-none');
     seatsSection.classList.add('d-none');
+    if(adminSection) adminSection.classList.add('d-none');
     eventsSection.classList.remove('d-none');
 }
 
@@ -140,11 +166,37 @@ function renderEvents(events) {
         eventsList.innerHTML = '<p class="text-muted">No hay eventos disponibles.</p>';
         return;
     }
+
+    let isAdmin = false;
+    try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser && currentUser.Role === 'Admin') {
+            isAdmin = true;
+        }
+    } catch (e) {}
+
     events.forEach(event => {
         const card = document.createElement('div');
         card.className = 'col-md-4 mb-4';
+        
+        let adminMenuHtml = '';
+        if (isAdmin) {
+            adminMenuHtml = `
+                <div class="dropdown position-absolute top-0 end-0 mt-2 me-2 event-admin-menu">
+                    <button class="btn btn-sm btn-dark bg-transparent border-0 p-1 rounded-circle d-flex align-items-center justify-content-center dropdown-toggle-no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 30px; height: 30px;">
+                        &#8942;
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li><a class="dropdown-item" href="#">Modificar evento</a></li>
+                        <li><a class="dropdown-item text-danger" href="#">Eliminar evento</a></li>
+                    </ul>
+                </div>
+            `;
+        }
+
         card.innerHTML = `
-            <div class="card h-100 shadow-sm border-0">
+            <div class="card h-100 shadow-sm border-0 position-relative event-card">
+                ${adminMenuHtml}
                 <div class="card-body">
                     <h5 class="card-title text-primary fw-bold">${event.Name}</h5>
                     <p class="card-text mb-1 text-muted">

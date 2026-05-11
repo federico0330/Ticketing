@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using TicketingSystem.Application.Commands;
+using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Application.Queries;
 
@@ -11,13 +14,26 @@ public class EventsController : ControllerBase
 {
     private readonly IGetAllEventsHandler _getAllEventsHandler;
     private readonly IGetSectorsByEventIdHandler _getSectorsByEventIdHandler;
+    private readonly ICreateEventHandler _createEventHandler;
 
     public EventsController(
         IGetAllEventsHandler getAllEventsHandler,
-        IGetSectorsByEventIdHandler getSectorsByEventIdHandler)
+        IGetSectorsByEventIdHandler getSectorsByEventIdHandler,
+        ICreateEventHandler createEventHandler)
     {
         _getAllEventsHandler = getAllEventsHandler;
         _getSectorsByEventIdHandler = getSectorsByEventIdHandler;
+        _createEventHandler = createEventHandler;
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public async Task<IActionResult> Create([FromBody] CreateEventRequest request, CancellationToken cancellationToken)
+    {
+        var command = new CreateEventCommand(request.Name, request.EventDate, request.Venue, request.Sectors);
+        var result = await _createEventHandler.HandleAsync(command, cancellationToken);
+        return StatusCode(201, result);
     }
 
     [HttpGet]
