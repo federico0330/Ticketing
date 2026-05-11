@@ -1,4 +1,4 @@
-import { fetchEvents, fetchSectorsByEvent, login, fetchMyReservations, updateEvent, deleteEvent } from './api.js';
+import { fetchEvents, fetchSectorsByEvent, login, register, fetchMyReservations, updateEvent, deleteEvent } from './api.js';
 import { loadSeats, checkAndShowActiveReservation } from './seats.js';
 
 const loginSection = document.getElementById('login-section');
@@ -37,6 +37,18 @@ async function init() {
     document.getElementById('btn-confirm-edit-event').addEventListener('click', handleEditConfirm);
     document.getElementById('btn-confirm-delete-event').addEventListener('click', handleDeleteConfirm);
 
+    document.getElementById('show-register-btn').addEventListener('click', e => {
+        e.preventDefault();
+        loginCard.classList.add('d-none');
+        registerCard.classList.remove('d-none');
+    });
+    document.getElementById('show-login-btn').addEventListener('click', e => {
+        e.preventDefault();
+        registerCard.classList.add('d-none');
+        loginCard.classList.remove('d-none');
+    });
+    registerForm.addEventListener('submit', handleRegister);
+
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         const user = JSON.parse(savedUser);
@@ -62,6 +74,26 @@ async function handleLogin(e) {
         await checkUserReservations(result.data.Id);
     } else {
         showAlert(result.data.Message || 'Error al iniciar sesión', 'error');
+    }
+}
+
+async function handleRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+
+    showLoading();
+    const result = await register(name, email, password);
+    hideLoading();
+
+    if (result.ok) {
+        localStorage.setItem('currentUser', JSON.stringify(result.data));
+        showAuthenticatedUI(result.data);
+        await loadEvents();
+        await checkUserReservations(result.data.Id);
+    } else {
+        showAlert(result.data?.Message || 'Error al registrarse', 'error');
     }
 }
 
@@ -166,6 +198,23 @@ export async function loadEvents() {
     }
 }
 
+function getRelativeDate(dateStr) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.round((date - now) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Hoy';
+    if (diffDays === 1) return 'Mañana';
+    if (diffDays === -1) return 'Ayer';
+    if (diffDays > 0) return `En ${diffDays} días`;
+    return `Hace ${Math.abs(diffDays)} días`;
+}
+
+function getStatusBadge(status) {
+    if (status === 'Active') return '<span class="badge bg-success ms-2">Activo</span>';
+    if (status === 'Deleted') return '<span class="badge bg-danger ms-2">Eliminado</span>';
+    return `<span class="badge bg-secondary ms-2">${status}</span>`;
+}
+
 function renderEvents(events) {
     eventsList.innerHTML = '';
     if (!events || events.length === 0) {
@@ -183,43 +232,55 @@ function renderEvents(events) {
 
     events.forEach(event => {
         const card = document.createElement('div');
-        card.className = 'col-md-4 mb-4';
-        
-        let adminMenuHtml = '';
+        card.className = 'col-md-6 mb-4';
+
+        const isDeleted = event.Status === 'Deleted';
+
+        let adminActionsHtml = '';
         if (isAdmin) {
-            adminMenuHtml = `
-                <div class="dropdown position-absolute top-0 end-0 mt-2 me-2 event-admin-menu">
-                    <button class="btn btn-sm btn-dark bg-transparent border-0 p-1 rounded-circle d-flex align-items-center justify-content-center dropdown-toggle-no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 30px; height: 30px;">
-                        &#8942;
+            adminActionsHtml = `
+                <div class="event-admin-actions">
+                    <button type="button" class="icon-btn icon-btn-edit" data-action="edit" title="Modificar evento" aria-label="Modificar evento">
+                        <span aria-hidden="true">✏️</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li><a class="dropdown-item" href="#">Modificar evento</a></li>
-                        <li><a class="dropdown-item text-danger" href="#">Eliminar evento</a></li>
-                    </ul>
+                    <button type="button" class="icon-btn icon-btn-delete" data-action="delete" title="Eliminar evento" aria-label="Eliminar evento">
+                        <span aria-hidden="true">🗑️</span>
+                    </button>
                 </div>
             `;
         }
 
         card.innerHTML = `
-            <div class="card h-100 shadow-sm border-0 position-relative event-card">
-                ${adminMenuHtml}
-                <div class="card-body">
-                    <h5 class="card-title text-primary fw-bold">${event.Name}</h5>
+            <div class="card h-100 border-0 position-relative event-card ${isDeleted ? 'opacity-60' : ''}">
+                ${adminActionsHtml}
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-center mb-2 pe-5">
+                        <h5 class="card-title fw-bold mb-0 event-card-title">${event.Name}</h5>
+                        ${getStatusBadge(event.Status)}
+                    </div>
                     <p class="card-text mb-1 text-muted">
                         <small>📅 ${new Date(event.EventDate).toLocaleString('es-AR')}</small>
+                        <span class="badge bg-secondary ms-2 fw-normal" style="font-size:0.7rem;">${getRelativeDate(event.EventDate)}</span>
                     </p>
                     <p class="card-text mb-3 text-muted">
                         <small>📍 ${event.Venue}</small>
                     </p>
-                    <button class="btn btn-outline-primary w-100 mt-auto">Ver Sectores</button>
+                    <div class="d-flex gap-3 mb-3 event-stats">
+                        <span class="small text-muted">🎭 <strong class="text-light">${event.SectorCount}</strong> sector${event.SectorCount !== 1 ? 'es' : ''}</span>
+                        <span class="small text-muted">💺 <strong class="text-light">${event.TotalSeats}</strong> butaca${event.TotalSeats !== 1 ? 's' : ''}</span>
+                    </div>
+                    <button class="btn btn-primary w-100 mt-auto" data-action="view" ${isDeleted ? 'disabled' : ''}>Ver Sectores →</button>
                 </div>
             </div>
         `;
-        card.querySelector('button').addEventListener('click', () => loadSectors(event.Id, event.Name));
+        if (!isDeleted) {
+            card.querySelector('[data-action="view"]').addEventListener('click', () => loadSectors(event.Id, event.Name));
+        }
         if (isAdmin) {
-            const [editLink, deleteLink] = card.querySelectorAll('.dropdown-item');
-            editLink.addEventListener('click', e => { e.preventDefault(); openEditModal(event); });
-            deleteLink.addEventListener('click', e => { e.preventDefault(); openDeleteModal(event.Id, event.Name); });
+            const editBtn = card.querySelector('[data-action="edit"]');
+            const deleteBtn = card.querySelector('[data-action="delete"]');
+            editBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openEditModal(event); });
+            deleteBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openDeleteModal(event.Id, event.Name); });
         }
         eventsList.appendChild(card);
     });

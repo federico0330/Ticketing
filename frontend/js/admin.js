@@ -8,11 +8,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAddSector = document.getElementById('btn-admin-add-sector');
     const btnCreateEvent = document.getElementById('btn-admin-create-event');
     const btnBackEvents = document.getElementById('btn-admin-back-events');
+    const sectorsList = document.getElementById('admin-sectors-list');
 
     if(btnGenerateGrid) btnGenerateGrid.addEventListener('click', generateGrid);
     if(btnAddSector) btnAddSector.addEventListener('click', addSector);
     if(btnCreateEvent) btnCreateEvent.addEventListener('click', handleCreateEvent);
     if(btnBackEvents) btnBackEvents.addEventListener('click', showEvents);
+
+    if (sectorsList) {
+        sectorsList.addEventListener('click', e => {
+            const btn = e.target.closest('button[data-sector-action]');
+            if (!btn) return;
+            const idx = parseInt(btn.dataset.sectorIndex, 10);
+            if (Number.isNaN(idx)) return;
+            if (btn.dataset.sectorAction === 'edit') editSector(idx);
+            else if (btn.dataset.sectorAction === 'remove') removeSector(idx);
+        });
+    }
 });
 
 function generateGrid(e) {
@@ -101,28 +113,35 @@ function updateSectorsList() {
     list.innerHTML = '';
 
     if (pendingSectors.length === 0) {
-        list.innerHTML = '<li class="list-group-item bg-dark text-muted border-secondary">No hay sectores aún.</li>';
+        list.innerHTML = `
+            <li class="list-group-item sectors-empty text-center text-muted py-4">
+                <div class="empty-icon mb-2">🎭</div>
+                Aún no agregaste sectores
+            </li>`;
         return;
     }
 
     pendingSectors.forEach((sector, index) => {
         const li = document.createElement('li');
-        li.className = 'list-group-item bg-dark text-light border-secondary d-flex flex-column gap-2';
+        li.className = 'list-group-item sector-item d-flex flex-column gap-2';
         li.innerHTML = `
             <div class="d-flex justify-content-between align-items-center">
-                <span><strong>${sector.Name}</strong> ($${sector.Price})</span>
+                <div>
+                    <strong class="d-block">${sector.Name}</strong>
+                    <small class="text-muted">$${sector.Price}</small>
+                </div>
                 <span class="badge bg-primary rounded-pill">${sector.Capacity} asientos</span>
             </div>
             <div class="d-flex gap-2 justify-content-end">
-                <button class="btn btn-sm btn-outline-info" onclick="window.editSector(${index})">✏️ Editar</button>
-                <button class="btn btn-sm btn-outline-danger" onclick="window.removeSector(${index})">🗑️</button>
+                <button type="button" class="btn btn-sm btn-outline-info" data-sector-action="edit" data-sector-index="${index}">✏️ Editar</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-sector-action="remove" data-sector-index="${index}">🗑️</button>
             </div>
         `;
         list.appendChild(li);
     });
 }
 
-window.editSector = function(index) {
+function editSector(index) {
     const sector = pendingSectors[index];
     
     // Fill the configuration form with sector data
@@ -154,12 +173,12 @@ window.editSector = function(index) {
     // Remove from pending list (it's now back in "edit" mode)
     pendingSectors.splice(index, 1);
     updateSectorsList();
-};
+}
 
-window.removeSector = function(index) {
+function removeSector(index) {
     pendingSectors.splice(index, 1);
     updateSectorsList();
-};
+}
 
 async function handleCreateEvent(e) {
     e.preventDefault();

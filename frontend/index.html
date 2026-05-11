@@ -46,58 +46,51 @@
       <!-- Pantalla: Login -->
       <section id="login-section" class="my-auto py-5">
         <div class="row justify-content-center">
-          <div class="col-md-5">
-            <div class="card p-4 shadow border-0" id="login-card">
-              <h3 class="text-center mb-4 text-primary fw-bold">Iniciar Sesión</h3>
+          <div class="col-md-7 col-lg-5 col-xl-4">
+            <div class="auth-hero text-center mb-4">
+              <div class="auth-hero-badge">🎫</div>
+              <h2 class="fw-bold mb-1">Bienvenido</h2>
+              <p class="text-muted mb-0">Reservá tu asiento en segundos.</p>
+            </div>
+
+            <div class="card auth-card p-4 shadow border-0" id="login-card">
+              <h4 class="text-center mb-4 fw-bold auth-card-title">Iniciar Sesión</h4>
               <form id="login-form">
                 <div class="mb-3">
-                  <label class="form-label text-muted">Email</label>
-                  <input type="email" id="login-email" class="form-control bg-dark text-light border-secondary" placeholder="user1@ticketing.com" required>
+                  <label class="form-label">Email</label>
+                  <input type="email" id="login-email" class="form-control form-control-modern" placeholder="tu@email.com" required>
                 </div>
                 <div class="mb-4">
-                  <label class="form-label text-muted">Contraseña</label>
-                  <input type="password" id="login-password" class="form-control bg-dark text-light border-secondary" placeholder="user1" required>
+                  <label class="form-label">Contraseña</label>
+                  <input type="password" id="login-password" class="form-control form-control-modern" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Entrar al Sistema</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Entrar</button>
               </form>
               <div class="text-center mt-3">
-                <a href="#" id="show-register-btn" class="text-info text-decoration-none">¿No tienes cuenta? Regístrate</a>
+                <a href="#" id="show-register-btn" class="text-info text-decoration-none small">¿No tenés cuenta? Registrate</a>
               </div>
             </div>
 
-            <div class="card p-4 shadow border-0 d-none" id="register-card">
-              <h3 class="text-center mb-4 text-primary fw-bold">Registro</h3>
+            <div class="card auth-card p-4 shadow border-0 d-none" id="register-card">
+              <h4 class="text-center mb-4 fw-bold auth-card-title">Crear Cuenta</h4>
               <form id="register-form">
                 <div class="mb-3">
-                  <label class="form-label text-muted">Nombre</label>
-                  <input type="text" id="register-name" class="form-control bg-dark text-light border-secondary" placeholder="Tu Nombre" required>
+                  <label class="form-label">Nombre</label>
+                  <input type="text" id="register-name" class="form-control form-control-modern" placeholder="Tu nombre" required>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label text-muted">Email</label>
-                  <input type="email" id="register-email" class="form-control bg-dark text-light border-secondary" placeholder="correo@ejemplo.com" required>
+                  <label class="form-label">Email</label>
+                  <input type="email" id="register-email" class="form-control form-control-modern" placeholder="tu@email.com" required>
                 </div>
                 <div class="mb-4">
-                  <label class="form-label text-muted">Contraseña</label>
-                  <input type="password" id="register-password" class="form-control bg-dark text-light border-secondary" placeholder="Contraseña" required>
+                  <label class="form-label">Contraseña</label>
+                  <input type="password" id="register-password" class="form-control form-control-modern" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Registrarse</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Registrarme</button>
               </form>
               <div class="text-center mt-3">
-                <a href="#" id="show-login-btn" class="text-info text-decoration-none">¿Ya tienes cuenta? Inicia sesión</a>
+                <a href="#" id="show-login-btn" class="text-info text-decoration-none small">¿Ya tenés cuenta? Iniciá sesión</a>
               </div>
-            </div>
-          </div>
-          <div class="col-md-5 mt-4 mt-md-0">
-            <div class="card p-4 border-info h-100" style="background: rgba(13, 202, 240, 0.05) !important;">
-              <h5 class="text-info mb-3">🗝️ Credenciales de Prueba (Seed)</h5>
-              <p class="small text-muted mb-2">Usá cualquiera de los siguientes usuarios para probar la concurrencia:</p>
-              <ul class="list-unstyled mb-0">
-                <li class="mb-2"><strong>Email:</strong> <code>user1@ticketing.com</code> / <strong>Pass:</strong> <code>user1</code></li>
-                <li class="mb-2"><strong>Email:</strong> <code>user2@ticketing.com</code> / <strong>Pass:</strong> <code>user2</code></li>
-                <li class="mb-2"><strong>Email:</strong> <code>user3@ticketing.com</code> / <strong>Pass:</strong> <code>user3</code></li>
-                <li class="mb-2"><strong>Email:</strong> <code>user4@ticketing.com</code> / <strong>Pass:</strong> <code>user4</code></li>
-                <li><strong>Email:</strong> <code>user5@ticketing.com</code> / <strong>Pass:</strong> <code>user5</code></li>
-              </ul>
             </div>
           </div>
         </div>
@@ -105,78 +98,107 @@
 
       <!-- Pantalla: Admin -->
       <section id="admin-section" class="d-none">
-        <button id="btn-admin-back-events" class="btn btn-outline-secondary mb-3">← Volver a Eventos</button>
-        <h2 class="mb-4 text-warning border-bottom border-warning pb-2">Crear Evento</h2>
-        <div class="row">
-          <div class="col-md-4">
-            <div class="card p-4 shadow border-0 mb-4" id="admin-event-form-container">
-              <h4 class="text-warning mb-3">1. Datos del Evento</h4>
-              <form id="admin-event-form">
-                  <div class="mb-3">
-                    <label class="form-label text-muted">Nombre del Evento</label>
-                    <input type="text" id="admin-event-name" class="form-control bg-dark text-light border-secondary">
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label text-muted">Fecha y Hora</label>
-                    <input type="datetime-local" id="admin-event-date" class="form-control bg-dark text-light border-secondary">
-                  </div>
-                  <div class="mb-4">
-                    <label class="form-label text-muted">Lugar (Venue)</label>
-                    <input type="text" id="admin-event-venue" class="form-control bg-dark text-light border-secondary">
-                  </div>
-              </form>
-            </div>
-
-            <div class="card p-4 shadow border-0 mb-4">
-              <h4 class="text-warning mb-3">Sectores Agregados</h4>
-              <ul id="admin-sectors-list" class="list-group mb-4">
-                  <li class="list-group-item bg-dark text-muted border-secondary">No hay sectores aún.</li>
-              </ul>
-              <button id="btn-admin-create-event" class="btn btn-warning w-100 fw-bold">Crear Evento en BD</button>
-            </div>
+        <div class="d-flex justify-content-between align-items-center mb-4 admin-header">
+          <div>
+            <h2 class="mb-1 fw-bold admin-title">Crear Evento</h2>
+            <p class="text-muted small mb-0">Configurá el evento, agregá sectores y publicalo.</p>
           </div>
-          <div class="col-md-8">
-            <div class="card p-4 shadow border-0">
-              <h4 class="text-warning mb-3">2. Configurar Sectores (Pre-visualización)</h4>
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label class="form-label text-muted">Nombre del Sector</label>
-                  <input type="text" id="admin-sector-name" class="form-control bg-dark text-light border-secondary">
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label text-muted">Precio ($)</label>
-                  <input type="number" id="admin-sector-price" class="form-control bg-dark text-light border-secondary" min="0">
-                </div>
+          <button id="btn-admin-back-events" class="btn btn-outline-secondary">← Volver</button>
+        </div>
+
+        <!-- Paso 1: Datos del evento -->
+        <div class="card admin-step-card p-4 mb-4 border-0 shadow-sm">
+          <div class="step-header mb-3">
+            <span class="step-badge">1</span>
+            <h5 class="mb-0">Datos del Evento</h5>
+          </div>
+          <form id="admin-event-form">
+            <div class="row g-3">
+              <div class="col-md-5">
+                <label class="form-label">Nombre del Evento</label>
+                <input type="text" id="admin-event-name" class="form-control form-control-modern" placeholder="Ej: Concierto Rock 2026">
               </div>
-              <div class="row mb-3">
-                <div class="col-md-4">
-                  <label class="form-label text-muted">Filas</label>
-                  <input type="number" id="admin-sector-rows" class="form-control bg-dark text-light border-secondary" min="1" max="50" value="5">
+              <div class="col-md-4">
+                <label class="form-label">Fecha y Hora</label>
+                <input type="datetime-local" id="admin-event-date" class="form-control form-control-modern">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Lugar</label>
+                <input type="text" id="admin-event-venue" class="form-control form-control-modern" placeholder="Ej: Luna Park">
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <!-- Paso 2: Diseñar sector -->
+          <div class="col-lg-8">
+            <div class="card admin-step-card p-4 border-0 shadow-sm h-100">
+              <div class="step-header mb-3">
+                <span class="step-badge">2</span>
+                <h5 class="mb-0">Diseñar Sector</h5>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre del Sector</label>
+                  <input type="text" id="admin-sector-name" class="form-control form-control-modern" placeholder="Ej: Platea Baja">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Precio ($)</label>
+                  <input type="number" id="admin-sector-price" class="form-control form-control-modern" min="0" placeholder="0">
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label text-muted">Columnas</label>
-                  <input type="number" id="admin-sector-cols" class="form-control bg-dark text-light border-secondary" min="1" max="50" value="10">
+                  <label class="form-label">Filas</label>
+                  <input type="number" id="admin-sector-rows" class="form-control form-control-modern" min="1" max="50" value="5">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Columnas</label>
+                  <input type="number" id="admin-sector-cols" class="form-control form-control-modern" min="1" max="50" value="10">
                 </div>
                 <div class="col-md-4 d-flex align-items-end">
                   <button id="btn-admin-generate-grid" class="btn btn-info w-100">Generar Grilla</button>
                 </div>
               </div>
 
-              <div class="mb-3 text-center d-flex gap-3 justify-content-center">
-                  <div class="d-flex align-items-center">
-                    <div class="seat-available rounded me-2" style="width:20px;height:20px;"></div> Activo
-                  </div>
-                  <div class="d-flex align-items-center">
-                    <div class="seat-inactive rounded me-2" style="width:20px;height:20px;"></div> Inactivo
-                  </div>
+              <div class="seat-legend d-flex gap-4 justify-content-center mb-3 small">
+                <span class="d-flex align-items-center">
+                  <span class="seat-available legend-swatch me-2"></span>Activo
+                </span>
+                <span class="d-flex align-items-center">
+                  <span class="seat-inactive legend-swatch me-2"></span>Inactivo
+                </span>
+                <span class="text-muted">Click para alternar</span>
               </div>
 
-              <div class="overflow-auto mb-3 border border-secondary p-3 rounded" style="min-height: 200px;">
+              <div class="grid-canvas mb-3">
                 <div id="admin-seat-grid" class="seat-grid d-inline-grid gap-2 justify-content-center mx-auto"></div>
               </div>
-              <button id="btn-admin-add-sector" class="btn btn-primary w-100">Agregar Sector al Evento</button>
+
+              <button id="btn-admin-add-sector" class="btn btn-primary w-100">+ Agregar Sector al Evento</button>
             </div>
           </div>
+
+          <!-- Paso 3: Sectores agregados -->
+          <div class="col-lg-4">
+            <div class="card admin-step-card p-4 border-0 shadow-sm h-100 d-flex flex-column">
+              <div class="step-header mb-3">
+                <span class="step-badge">3</span>
+                <h5 class="mb-0">Sectores Agregados</h5>
+              </div>
+              <ul id="admin-sectors-list" class="list-group list-group-flush flex-grow-1 sectors-list">
+                <li class="list-group-item sectors-empty text-center text-muted py-4">
+                  <div class="empty-icon mb-2">🎭</div>
+                  Aún no agregaste sectores
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de acción -->
+        <div class="admin-action-bar d-flex justify-content-end gap-2">
+          <button id="btn-admin-create-event" class="btn btn-warning fw-bold px-4 py-2">✓ Crear Evento</button>
         </div>
       </section>
 

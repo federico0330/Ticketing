@@ -8,16 +8,23 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        if (!await context.Users.AnyAsync())
+        var usersToSeed = new[]
         {
-            context.Users.AddRange(
-                new User { Name = "Administrador", Email = "admin@ticketing.com",
-                           PasswordHash = PasswordHasher.Hash("admin") },
-                new User { Name = "Usuario",       Email = "user@ticketing.com",
-                           PasswordHash = PasswordHasher.Hash("user") }
-            );
-            await context.SaveChangesAsync();
+            ("Administrador", "admin@ticketing.com",  "admin"),
+            ("Usuario 1",     "user1@ticketing.com",  "user1"),
+            ("Usuario 2",     "user2@ticketing.com",  "user2"),
+            ("Usuario 3",     "user3@ticketing.com",  "user3"),
+            ("Usuario 4",     "user4@ticketing.com",  "user4"),
+            ("Usuario 5",     "user5@ticketing.com",  "user5"),
+        };
+        foreach (var (name, email, password) in usersToSeed)
+        {
+            if (!await context.Users.AnyAsync(u => u.Email == email))
+            {
+                context.Users.Add(new User { Name = name, Email = email, PasswordHash = PasswordHasher.Hash(password) });
+            }
         }
+        await context.SaveChangesAsync();
 
         if (await context.Events.AnyAsync()) return;
 

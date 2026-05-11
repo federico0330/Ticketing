@@ -1,26 +1,35 @@
 :root {
     --bg-dark: #0f172a;
+    --bg-deeper: #0b1120;
     --surface-dark: #1e293b;
+    --surface-elevated: #243049;
     --surface-hover: #334155;
+    --border-subtle: rgba(148, 163, 184, 0.12);
+    --border-strong: rgba(148, 163, 184, 0.22);
+
     --primary-blue: #3b82f6;
     --primary-hover: #2563eb;
     --accent-blue: #60a5fa;
+    --accent-warning: #f59e0b;
 
     --seat-available: #10b981;
     --seat-reserved: #f59e0b;
     --seat-sold: #ef4444;
 
     --text-main: #f8fafc;
-    --text-muted: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
 }
 
+/* ============ Base ============ */
 body {
     font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: var(--bg-dark) !important;
+    background: radial-gradient(ellipse at top, #142036 0%, var(--bg-dark) 45%, var(--bg-deeper) 100%) !important;
     color: var(--text-main);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    letter-spacing: -0.01em;
 }
 
 .main-container {
@@ -31,34 +40,308 @@ body {
 }
 
 .main-content-glass {
-    background-color: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(59, 130, 246, 0.15);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    background-color: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-.sector-card .card-title {
-    color: var(--accent-blue) !important;
+/* Navbar */
+.custom-navbar {
+    background-color: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.navbar-brand {
+    letter-spacing: -0.02em;
     font-weight: 700;
 }
 
-.sector-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+/* Form labels & inputs */
+.form-label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+}
+
+.form-control-modern {
+    background-color: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid var(--border-strong) !important;
+    color: var(--text-main) !important;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+
+.form-control-modern:focus {
+    background-color: rgba(15, 23, 42, 0.85) !important;
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+    color: var(--text-main) !important;
+}
+
+.form-control-modern::placeholder {
+    color: var(--text-dim);
+}
+
+/* Generic form controls inside dark cards */
+.form-control.bg-dark {
+    background-color: rgba(15, 23, 42, 0.6) !important;
+    border-color: var(--border-strong) !important;
+}
+
+.form-control.bg-dark:focus {
+    border-color: var(--primary-blue) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+}
+
+/* ============ Auth (Login / Register) ============ */
+.auth-hero {
+    margin-bottom: 2rem;
+}
+
+.auth-hero-badge {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(96, 165, 250, 0.12));
+    border: 1px solid rgba(59, 130, 246, 0.35);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.18);
+}
+
+.auth-card {
+    background-color: rgba(30, 41, 59, 0.6) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 16px !important;
+}
+
+.auth-card-title {
+    color: var(--accent-blue);
+    letter-spacing: -0.01em;
+}
+
+/* ============ Event cards ============ */
+.event-card {
+    background-color: rgba(30, 41, 59, 0.55) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 14px !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    overflow: hidden;
+}
+
+.event-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(59, 130, 246, 0.45) !important;
+    background-color: rgba(30, 41, 59, 0.78) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.event-card-title {
+    color: var(--accent-blue);
+    letter-spacing: -0.01em;
+}
+
+.event-stats strong {
+    color: var(--text-main);
+}
+
+/* Inline admin actions (reemplaza el dropdown de "tres puntos") */
+.event-admin-actions {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    display: flex;
+    gap: 0.35rem;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    z-index: 2;
+}
+
+.event-card:hover .event-admin-actions,
+.event-admin-actions:focus-within {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    background-color: rgba(15, 23, 42, 0.85);
+    border: 1px solid var(--border-strong);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, transform 0.15s;
+    padding: 0;
+}
+
+.icon-btn:hover {
+    transform: scale(1.08);
+}
+
+.icon-btn-edit:hover {
+    background-color: rgba(59, 130, 246, 0.2);
     border-color: var(--primary-blue);
+}
+
+.icon-btn-delete:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: var(--seat-sold);
+}
+
+.icon-btn:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+/* ============ Sector cards ============ */
+.sector-card {
+    background-color: rgba(30, 41, 59, 0.55) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 14px !important;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
+}
+
+.sector-card .card-title {
+    color: var(--accent-blue) !important;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.sector-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4) !important;
+    border-color: rgba(59, 130, 246, 0.45) !important;
     background-color: rgba(30, 41, 59, 0.8) !important;
 }
 
-/* Encabezados */
+/* ============ Section headings ============ */
 h2.text-secondary {
     color: var(--accent-blue) !important;
-    border-bottom-color: rgba(96, 165, 250, 0.2) !important;
+    border-bottom-color: rgba(96, 165, 250, 0.18) !important;
+    letter-spacing: -0.015em;
 }
 
-/* Grilla de Asientos */
+.admin-title {
+    color: var(--accent-warning);
+    letter-spacing: -0.02em;
+}
+
+/* ============ Admin: steps & cards ============ */
+.admin-step-card {
+    background-color: rgba(30, 41, 59, 0.55) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 14px !important;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.step-header h5 {
+    color: var(--text-main);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-blue), var(--accent-blue));
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+    flex-shrink: 0;
+}
+
+.grid-canvas {
+    background-color: rgba(11, 17, 32, 0.5);
+    border: 1px dashed var(--border-strong);
+    border-radius: 12px;
+    padding: 1rem;
+    min-height: 220px;
+    overflow: auto;
+    text-align: center;
+}
+
+.legend-swatch {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.seat-legend {
+    color: var(--text-muted);
+}
+
+.admin-action-bar {
+    position: sticky;
+    bottom: 0;
+    padding: 1rem 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.9) 40%);
+    backdrop-filter: blur(6px);
+    z-index: 5;
+}
+
+/* Sectors list */
+.sectors-list {
+    background: transparent;
+    --bs-list-group-bg: transparent;
+}
+
+.sectors-list .list-group-item {
+    background-color: rgba(15, 23, 42, 0.45);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
+    border-radius: 10px !important;
+    margin-bottom: 0.5rem;
+}
+
+.sectors-list .sectors-empty {
+    background-color: rgba(15, 23, 42, 0.25);
+    border: 1px dashed var(--border-strong);
+}
+
+.empty-icon {
+    font-size: 1.8rem;
+    opacity: 0.45;
+}
+
+.sector-item {
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.sector-item:hover {
+    border-color: var(--primary-blue);
+    background-color: rgba(15, 23, 42, 0.7);
+}
+
+/* ============ Seats grid ============ */
 .seat-grid {
     display: grid;
     gap: 10px;
@@ -76,11 +359,10 @@ h2.text-secondary {
     font-size: 0.95rem;
     color: #fff;
     user-select: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s, filter 0.2s;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* Estados de los Asientos */
 .seat-available {
     background-color: var(--seat-available);
     cursor: pointer;
@@ -132,59 +414,45 @@ h2.text-secondary {
 }
 
 @keyframes pulse {
-    0% {
-        opacity: 1;
-        box-shadow: 0 0 0 0 rgba(71, 85, 105, 0.7);
-    }
-
-    50% {
-        opacity: 0.5;
-        box-shadow: 0 0 0 10px rgba(71, 85, 105, 0);
-    }
-
-    100% {
-        opacity: 1;
-        box-shadow: 0 0 0 0 rgba(71, 85, 105, 0);
-    }
+    0% { opacity: 1; box-shadow: 0 0 0 0 rgba(71, 85, 105, 0.7); }
+    50% { opacity: 0.5; box-shadow: 0 0 0 10px rgba(71, 85, 105, 0); }
+    100% { opacity: 1; box-shadow: 0 0 0 0 rgba(71, 85, 105, 0); }
 }
 
-/* Modales */
+.legend-container {
+    background-color: rgba(30, 41, 59, 0.5);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+}
+
+/* ============ Modals ============ */
 .modal-content {
     background-color: var(--surface-dark);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-subtle);
     border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
     color: var(--text-main);
 }
 
 .modal-header {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .modal-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border-subtle);
 }
 
-/* Animaciones y Alertas */
-.spinner {
-    width: 3rem;
-    height: 3rem;
-    color: var(--primary-blue) !important;
+/* ============ Buttons ============ */
+.btn {
+    border-radius: 10px;
+    font-weight: 500;
+    transition: background-color 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
 }
 
-.alert-success {
-    background-color: rgba(16, 185, 129, 0.1) !important;
-    color: #34d399 !important;
-    border-color: rgba(16, 185, 129, 0.2) !important;
+.btn:active {
+    transform: translateY(1px);
 }
 
-.alert-error {
-    background-color: rgba(239, 68, 68, 0.1) !important;
-    color: #f87171 !important;
-    border-color: rgba(239, 68, 68, 0.2) !important;
-}
-
-/* Botones */
 .btn-primary {
     background-color: var(--primary-blue);
     border-color: var(--primary-blue);
@@ -194,30 +462,78 @@ h2.text-secondary {
 .btn-primary:hover {
     background-color: var(--primary-hover);
     border-color: var(--primary-hover);
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 6px 18px rgba(59, 130, 246, 0.4);
     color: white;
+}
+
+.btn-warning {
+    background-color: var(--accent-warning);
+    border-color: var(--accent-warning);
+    color: #1a1300;
+}
+
+.btn-warning:hover {
+    background-color: #fbbf24;
+    border-color: #fbbf24;
+    box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
+    color: #1a1300;
+}
+
+.btn-outline-primary {
+    border-color: var(--primary-blue);
+    color: var(--accent-blue);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-blue);
+    border-color: var(--primary-blue);
+    color: #fff;
 }
 
 .btn-outline-secondary {
     color: var(--text-muted);
-    border-color: rgba(203, 213, 225, 0.2);
+    border-color: var(--border-strong);
 }
 
 .btn-outline-secondary:hover {
     background-color: var(--surface-hover);
     color: #fff;
-    border-color: rgba(203, 213, 225, 0.4);
+    border-color: var(--border-strong);
 }
 
-/* Banner de Reserva */
+/* ============ Alerts ============ */
+.spinner {
+    width: 3rem;
+    height: 3rem;
+    color: var(--primary-blue) !important;
+}
+
+.alert {
+    border-radius: 12px;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    color: #34d399 !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+.alert-error {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    color: #f87171 !important;
+    border-color: rgba(239, 68, 68, 0.25) !important;
+}
+
+/* ============ Reservation banner ============ */
 .reservation-banner {
     position: sticky;
     top: 0;
     z-index: 1050;
-    background: rgba(30, 41, 59, 0.9);
+    background: rgba(30, 41, 59, 0.92);
     backdrop-filter: blur(10px);
     border-bottom: 2px solid var(--seat-reserved);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
     animation: slideDown 0.4s ease-out;
 }
 
@@ -226,36 +542,11 @@ h2.text-secondary {
     to { transform: translateY(0); }
 }
 
-/* Menu Administrador en Tarjetas de Eventos */
-.event-card .event-admin-menu {
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.event-card:hover .event-admin-menu {
-    opacity: 1;
-}
-
-.dropdown-toggle-no-caret::after {
-    display: none !important;
-}
-
-.event-admin-menu .dropdown-menu {
-    background-color: var(--surface-dark);
-    border-color: rgba(255,255,255,0.1);
-}
-
-.event-admin-menu .dropdown-item {
-    color: var(--text-main);
-}
-
-.event-admin-menu .dropdown-item:hover {
-    background-color: var(--surface-hover);
-    color: #fff;
-}
-
 #timer-display {
     font-size: 1.2rem;
     letter-spacing: 1px;
 }
 
+.opacity-60 {
+    opacity: 0.6;
+}
