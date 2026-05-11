@@ -32,7 +32,7 @@ public class ReservationExpirationWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while processing expired reservations.");
+                _logger.LogError(ex, "[CODE-ERROR] - Error occurred while processing expired reservations.");
             }
         }
 
@@ -91,33 +91,7 @@ public class ReservationExpirationWorker : BackgroundService
             {
                 await unitOfWork.RollbackTransactionAsync();
                 unitOfWork.ClearChanges();
-                _logger.LogError(ex, "Failed to expire reservation {ReservationId}.", reservation.Id);
-
-                try
-                {
-                    await auditLogRepository.CreateAsync(new TicketingSystem.Domain.Entities.AuditLog
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = null,
-                        Action = "RESERVATION_EXPIRED",
-                        EntityType = "Reservation",
-                        EntityId = reservation.Id.ToString(),
-                        Details = System.Text.Json.JsonSerializer.Serialize(new
-                        {
-                            reservation.Id,
-                            reservation.SeatId,
-                            Status = "FAILED",
-                            Error = ex.Message,
-                            TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-                        }),
-                        CreatedAt = DateTime.UtcNow
-                    });
-                    await unitOfWork.SaveChangesAsync();
-                }
-                catch (Exception auditEx)
-                {
-                    _logger.LogError(auditEx, "Failed to write RESERVATION_EXPIRED FAILED audit for reservation {ReservationId}.", reservation.Id);
-                }
+                _logger.LogError(ex, "[CODE-ERROR] - Failed to expire reservation {ReservationId}.", reservation.Id);
             }
         }
     }

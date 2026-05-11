@@ -30,23 +30,20 @@ public class ReservationsController : ControllerBase
         _createBatchReservationHandler = createBatchReservationHandler;
     }
 
-    [HttpPost("{id}/payments")]
-    [Authorize]
+    [HttpPost("payments")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> ConfirmPayment(Guid id, [FromBody] PaymentRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> ConfirmPayment([FromBody] PaymentRequest request, CancellationToken cancellationToken)
     {
-        if (id != request.ReservationId)
-        {
-            return BadRequest(new { Error = "ID_MISMATCH", Message = "El ID de la reserva no coincide." });
-        }
-
         var command = new ConfirmPaymentCommand 
         { 
-            ReservationId = request.ReservationId, 
-            CardToken = request.CardToken 
+            ReservationIds = request.ReservationIds, 
+            CreditCardNumber = request.CreditCardNumber,
+            CardHolderName = request.CardHolderName,
+            ExpiryDate = request.ExpiryDate,
+            Cvv = request.Cvv
         };
 
         var response = await _confirmPaymentHandler.HandleAsync(command, cancellationToken);

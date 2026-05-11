@@ -1,7 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
+using TicketingSystem.Domain.Entities;
+using TicketingSystem.Domain.Exceptions;
 
 namespace TicketingSystem.Application.Handlers;
 
@@ -29,49 +36,49 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
 
     public async Task<PaymentResponse> HandleAsync(ConfirmPaymentCommand command, CancellationToken cancellationToken = default)
     {
-        int? userId = null;
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
-            var reservation = await _reservationRepository.GetByIdAsync(command.ReservationId, cancellationToken);
-            if (reservation is null)
-                throw new Domain.Exceptions.ReservationNotFoundException(command.ReservationId);
-            
-            userId = reservation.UserId;
-
-            if (reservation.Status != "Pending")
-                throw new InvalidOperationException($"Reservation {command.ReservationId} is not in a pending state.");
-
-            if (reservation.ExpiresAt <= DateTime.UtcNow)
-                throw new Domain.Exceptions.ReservationExpiredException(command.ReservationId);
-
-            reservation.Status = "Paid";
-            await _reservationRepository.UpdateAsync(reservation, cancellationToken);
-
-            var seat = await _seatRepository.GetByIdAsync(reservation.SeatId, cancellationToken);
-            if (seat == null)
-                throw new InvalidOperationException($"Seat {reservation.SeatId} not found for reservation.");
-            
-            seat.Status = "Sold";
-            seat.Version += 1;
-            await _seatRepository.UpdateAsync(seat, cancellationToken);
-
-            var auditLog = new Domain.Entities.AuditLog
+            // Simulación de pasarela de pagos
+            if (command.CreditCardNumber.Replace(" ", "").EndsWith("0000"))
             {
-                Id = Guid.NewGuid(),
-                UserId = reservation.UserId,
-                Action = "PAYMENT_SUCCESS",
-                EntityType = "Reservation",
-                EntityId = reservation.Id.ToString(),
-                Details = System.Text.Json.JsonSerializer.Serialize(new
+                throw new PaymentFailedException("Rechazo bancario simulado. La tarjeta finaliza en 0000.");
+            }
+
+            foreach (var reservationId in command.ReservationIds)
+            {
+                var reservation = await _reservationRepository.GetByIdAsync(reservationId, cancellationToken);
+                if (reservation is null)
+                    throw new ReservationNotFoundException(reservationId);
+
+                if (reservation.Status != "Pending")
+                    continue; // Skip if already processed or expired
+
+                if (reservation.ExpiresAt <= DateTime.UtcNow)
+                    throw new ReservationExpiredException(reservationId);
+
+                reservation.Status = "Paid";
+                await _reservationRepository.UpdateAsync(reservation, cancellationToken);
+
+                var seat = await _seatRepository.GetByIdAsync(reservation.SeatId, cancellationToken);
+                if (seat != null)
                 {
-                    command.ReservationId,
-                    command.CardToken,
-                    TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-                }),
-                CreatedAt = DateTime.UtcNow
-            };
-            await _auditLogRepository.CreateAsync(auditLog, cancellationToken);
+                    seat.Status = "Sold";
+                    seat.Version += 1;
+                    await _seatRepository.UpdateAsync(seat, cancellationToken);
+                }
+
+                await _auditLogRepository.CreateAsync(new AuditLog
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = reservation.UserId,
+                    Action = "PAYMENT_SUCCESS",
+                    EntityType = "Reservation",
+                    EntityId = reservation.Id.ToString(),
+                    Details = System.Text.Json.JsonSerializer.Serialize(new { reservationId, CardMasked = "****" + command.CreditCardNumber.Substring(Math.Max(0, command.CreditCardNumber.Length - 4)) }),
+                    CreatedAt = DateTime.UtcNow
+                }, cancellationToken);
+            }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
@@ -79,8 +86,7 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
             return new PaymentResponse
             {
                 Success = true,
-                Message = "Payment processed successfully.",
-                ReservationId = reservation.Id,
+                Message = "Pago procesado exitosamente.",
                 FinalStatus = "Paid"
             };
         }
@@ -88,25 +94,7 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
         {
             await _unitOfWork.RollbackTransactionAsync(cancellationToken);
             _unitOfWork.ClearChanges();
-            
-            await _auditLogRepository.CreateAsync(new Domain.Entities.AuditLog
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                Action = "PAYMENT_FAILED",
-                EntityType = "Reservation",
-                EntityId = command.ReservationId.ToString(),
-                Details = System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    command.ReservationId,
-                    Error = ex.Message,
-                    TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
-                }),
-                CreatedAt = DateTime.UtcNow
-            }, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-            
-            _logger.LogError(ex, "Payment confirmation failed for reservation {ReservationId}.", command.ReservationId);
+            _logger.LogError(ex, "[CODE-ERROR] - Fallo al confirmar el pago para las reservas.");
             throw;
         }
     }
