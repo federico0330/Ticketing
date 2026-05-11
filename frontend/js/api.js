@@ -107,6 +107,27 @@ export async function createEvent(payload) {
     return { ok: response.ok, status: response.status, data };
 }
 
+export async function updateEvent(id, payload) {
+    const response = await fetch(`${BASE_URL}/events/${id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    return { ok: response.ok, status: response.status, data };
+}
+
+export async function deleteEvent(id) {
+    const response = await fetch(`${BASE_URL}/events/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+    });
+    return { ok: response.ok, status: response.status };
+}
+
 export function logout() {
     localStorage.removeItem('currentUser');
 }

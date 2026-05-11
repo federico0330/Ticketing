@@ -1,4 +1,4 @@
-import { fetchEvents, fetchSectorsByEvent, login, fetchMyReservations } from './api.js';
+import { fetchEvents, fetchSectorsByEvent, login, fetchMyReservations, updateEvent, deleteEvent } from './api.js';
 import { loadSeats, checkAndShowActiveReservation } from './seats.js';
 
 const loginSection = document.getElementById('login-section');
@@ -9,6 +9,9 @@ const sectorsList = document.getElementById('sectors-list');
 const seatsSection = document.getElementById('seats-section');
 const spinner = document.getElementById('loading-spinner');
 const eventTitle = document.getElementById('event-title');
+
+let _editingEvent = null;
+let _deletingEventId = null;
 
 const userInfo = document.getElementById('user-info');
 const navbarUsername = document.getElementById('navbar-username');
@@ -30,6 +33,9 @@ async function init() {
     loginForm.addEventListener('submit', handleLogin);
     btnLogout.addEventListener('click', handleLogout);
     if (btnAdmin) btnAdmin.addEventListener('click', showAdminSection);
+
+    document.getElementById('btn-confirm-edit-event').addEventListener('click', handleEditConfirm);
+    document.getElementById('btn-confirm-delete-event').addEventListener('click', handleDeleteConfirm);
 
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
@@ -210,6 +216,11 @@ function renderEvents(events) {
             </div>
         `;
         card.querySelector('button').addEventListener('click', () => loadSectors(event.Id, event.Name));
+        if (isAdmin) {
+            const [editLink, deleteLink] = card.querySelectorAll('.dropdown-item');
+            editLink.addEventListener('click', e => { e.preventDefault(); openEditModal(event); });
+            deleteLink.addEventListener('click', e => { e.preventDefault(); openDeleteModal(event.Id, event.Name); });
+        }
         eventsList.appendChild(card);
     });
 }
@@ -223,6 +234,53 @@ export async function loadSectors(eventId, eventName) {
         showAlert('No se pudieron cargar los sectores.', 'error');
     } finally {
         hideLoading();
+    }
+}
+
+function openEditModal(event) {
+    _editingEvent = event;
+    document.getElementById('edit-event-name').value = event.Name;
+    document.getElementById('edit-event-date').value = event.EventDate.substring(0, 16);
+    document.getElementById('edit-event-venue').value = event.Venue;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('editEventModal')).show();
+}
+
+function openDeleteModal(id, name) {
+    _deletingEventId = id;
+    document.getElementById('delete-event-name').textContent = name;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteEventModal')).show();
+}
+
+async function handleEditConfirm() {
+    const name = document.getElementById('edit-event-name').value.trim();
+    const eventDate = document.getElementById('edit-event-date').value;
+    const venue = document.getElementById('edit-event-venue').value.trim();
+    if (!name || !eventDate || !venue) return;
+
+    bootstrap.Modal.getInstance(document.getElementById('editEventModal'))?.hide();
+    showLoading();
+    const result = await updateEvent(_editingEvent.Id, { Name: name, EventDate: eventDate, Venue: venue });
+    hideLoading();
+
+    if (result.ok) {
+        showAlert('Evento actualizado correctamente.', 'success');
+        await loadEvents();
+    } else {
+        showAlert(result.data?.Message || 'Error al actualizar el evento.', 'error');
+    }
+}
+
+async function handleDeleteConfirm() {
+    bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'))?.hide();
+    showLoading();
+    const result = await deleteEvent(_deletingEventId);
+    hideLoading();
+
+    if (result.ok) {
+        showAlert('Evento eliminado correctamente.', 'success');
+        await loadEvents();
+    } else {
+        showAlert('Error al eliminar el evento.', 'error');
     }
 }
 
