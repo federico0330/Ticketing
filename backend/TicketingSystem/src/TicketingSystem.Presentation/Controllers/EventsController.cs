@@ -40,7 +40,7 @@ public class EventsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        var events = await _getAllEventsHandler.HandleAsync(new GetAllEventsQuery(), cancellationToken);
+        var events = await _getAllEventsHandler.HandleAsync(new GetAllEventsQuery(User.IsInRole("Admin")), cancellationToken);
         return Ok(events);
     }
 

@@ -82,7 +82,9 @@ public class CreateEventHandler : ICreateEventHandler
             @event.Name,
             @event.EventDate,
             @event.Venue,
-            @event.Status
+            @event.Status,
+            @event.Sectors.Count,
+            @event.Sectors.Sum(s => s.Seats.Count)
         );
     }
 }

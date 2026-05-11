@@ -1,3 +1,3 @@
 namespace TicketingSystem.Application.Queries;
 
-public record GetAllEventsQuery();
+public record GetAllEventsQuery(bool IsAdmin = false);

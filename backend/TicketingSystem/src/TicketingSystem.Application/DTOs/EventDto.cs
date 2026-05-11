@@ -5,5 +5,7 @@ public record EventDto(
     string Name,
     DateTime EventDate,
     string Venue,
-    string Status
+    string Status,
+    int SectorCount,
+    int TotalSeats
 );
