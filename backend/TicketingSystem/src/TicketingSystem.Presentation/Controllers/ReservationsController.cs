@@ -4,6 +4,7 @@ using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Application.Queries;
+using TicketingSystem.Application.Handlers;
 
 namespace TicketingSystem.Presentation.Controllers;
 
@@ -13,14 +14,20 @@ namespace TicketingSystem.Presentation.Controllers;
 public class ReservationsController : ControllerBase
 {
     private readonly IConfirmPaymentHandler _confirmPaymentHandler;
+    private readonly IConfirmBatchPaymentHandler _confirmBatchPaymentHandler;
     private readonly IGetUserReservationsHandler _getUserReservationsHandler;
+    private readonly ICreateBatchReservationHandler _createBatchReservationHandler;
 
     public ReservationsController(
         IConfirmPaymentHandler confirmPaymentHandler,
-        IGetUserReservationsHandler getUserReservationsHandler)
+        IConfirmBatchPaymentHandler confirmBatchPaymentHandler,
+        IGetUserReservationsHandler getUserReservationsHandler,
+        ICreateBatchReservationHandler createBatchReservationHandler)
     {
         _confirmPaymentHandler = confirmPaymentHandler;
+        _confirmBatchPaymentHandler = confirmBatchPaymentHandler;
         _getUserReservationsHandler = getUserReservationsHandler;
+        _createBatchReservationHandler = createBatchReservationHandler;
     }
 
     [HttpPost("{id}/payments")]
@@ -43,6 +50,45 @@ public class ReservationsController : ControllerBase
         };
 
         var response = await _confirmPaymentHandler.HandleAsync(command, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpPost("payments")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> ConfirmBatchPayment([FromBody] BatchPaymentRequest request, CancellationToken cancellationToken)
+    {
+        if (request.ReservationIds == null || request.ReservationIds.Count == 0)
+        {
+            return BadRequest(new { Error = "EMPTY_BATCH", Message = "Debés enviar al menos una reserva." });
+        }
+
+        var command = new ConfirmBatchPaymentCommand
+        {
+            ReservationIds = request.ReservationIds,
+            CardToken = request.CardToken
+        };
+
+        var response = await _confirmBatchPaymentHandler.HandleAsync(command, cancellationToken);
+        return Ok(response);
+    }
+
+    [HttpPost("batch")]
+    [Authorize]
+    [ProducesResponseType(typeof(BatchReservationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateBatch([FromBody] BatchReservationRequest request, CancellationToken cancellationToken)
+    {
+        if (request.SeatIds is null || request.SeatIds.Count == 0)
+            return BadRequest(new { Error = "EMPTY_BATCH", Message = "Debés enviar al menos una butaca." });
+
+        var command = new CreateBatchReservationCommand { SeatIds = request.SeatIds, UserId = request.UserId };
+        var response = await _createBatchReservationHandler.HandleAsync(command, cancellationToken);
         return Ok(response);
     }
 

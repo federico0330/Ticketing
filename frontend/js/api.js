@@ -68,6 +68,16 @@ export async function register(name, email, password) {
     }
 }
 
+export async function batchReserveSeats(seatIds, userId) {
+    const response = await fetch(`${BASE_URL}/reservations/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+        body: JSON.stringify({ SeatIds: seatIds, UserId: userId })
+    });
+    const data = await response.json();
+    return { ok: response.ok, status: response.status, data };
+}
+
 export async function createReservation(seatId, userId) {
     const response = await fetch(`${BASE_URL}/reservations`, {
         method: 'POST',
@@ -76,6 +86,19 @@ export async function createReservation(seatId, userId) {
             'Authorization': `Bearer ${getToken()}`
         },
         body: JSON.stringify({ SeatId: seatId, UserId: userId })
+    });
+    const data = await response.json();
+    return { ok: response.ok, status: response.status, data };
+}
+
+export async function batchPayment(reservationIds, cardToken) {
+    const response = await fetch(`${BASE_URL}/reservations/payments`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ ReservationIds: reservationIds, CardToken: cardToken })
     });
     const data = await response.json();
     return { ok: response.ok, status: response.status, data };

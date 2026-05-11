@@ -1,5 +1,6 @@
 import { fetchEvents, fetchSectorsByEvent, login, register, fetchMyReservations, updateEvent, deleteEvent } from './api.js';
-import { loadSeats, checkAndShowActiveReservation } from './seats.js';
+import { loadSeats, checkAndShowActiveReservation } from './seats.js?v=2';
+import { clearCart, updateCartBadge } from './cart.js';
 
 const loginSection = document.getElementById('login-section');
 const eventsSection = document.getElementById('events-section');
@@ -48,6 +49,8 @@ async function init() {
         loginCard.classList.remove('d-none');
     });
     registerForm.addEventListener('submit', handleRegister);
+
+    updateCartBadge();
 
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
@@ -113,6 +116,7 @@ async function checkUserReservations(userId) {
 
 function handleLogout() {
     localStorage.removeItem('currentUser');
+    clearCart();
     userInfo.classList.add('d-none');
     eventsSection.classList.add('d-none');
     sectorsSection.classList.add('d-none');
@@ -367,7 +371,7 @@ function renderSectors(sectors, eventName) {
         `;
         col.querySelector('button').addEventListener('click', () => {
             sectorsSection.classList.add('d-none');
-            loadSeats(sector.Id, sector.Name);
+            loadSeats(sector.Id, sector.Name, sector.Price, eventName);
         });
         sectorsList.appendChild(col);
     });

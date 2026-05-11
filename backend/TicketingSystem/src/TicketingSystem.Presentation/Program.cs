@@ -30,6 +30,8 @@ builder.Services.AddScoped<ICreateEventHandler, CreateEventHandler>();
 builder.Services.AddScoped<IUpdateEventHandler, UpdateEventHandler>();
 builder.Services.AddScoped<IDeleteEventHandler, DeleteEventHandler>();
 builder.Services.AddScoped<IConfirmPaymentHandler, ConfirmPaymentHandler>();
+builder.Services.AddScoped<IConfirmBatchPaymentHandler, ConfirmBatchPaymentHandler>();
+builder.Services.AddScoped<ICreateBatchReservationHandler, CreateBatchReservationHandler>();
 builder.Services.AddScoped<ILoginHandler, LoginHandler>();
 builder.Services.AddScoped<IRegisterHandler, RegisterHandler>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();

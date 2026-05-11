@@ -26,7 +26,8 @@
       <span class="navbar-brand mb-0 h1">🎫 Ticketing System</span>
       <div id="user-info" class="d-none align-items-center">
         <span class="text-muted me-3" id="navbar-username"></span>
-        <button id="btn-admin" class="btn btn-sm btn-outline-warning me-2 d-none">Admin Dashboard</button>
+        <button id="btn-cart" class="btn btn-sm btn-outline-info me-2 d-none">🛒 Carrito <span id="cart-badge" class="badge bg-info text-dark">0</span></button>
+        <button id="btn-admin" class="btn btn-sm btn-outline-warning me-2 d-none">Crear Evento</button>
         <button id="btn-logout" class="btn btn-sm btn-outline-danger">Cerrar Sesión</button>
       </div>
     </div>
@@ -235,27 +236,21 @@
         <div class="card p-4 shadow-sm text-center overflow-auto">
           <div id="seats-grid" class="seat-grid d-inline-grid gap-2 justify-content-center mx-auto"></div>
         </div>
-      </section>
-    </div>
-  </div>
 
-  <!-- Modal: Confirmar Reserva -->
-  <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Confirmar Reserva</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div id="selection-bar" class="selection-bar d-none mt-3">
+          <div class="d-flex justify-content-between align-items-center py-2 px-3">
+            <div>
+              <span class="fw-bold">Butacas seleccionadas: </span>
+              <span id="selection-count" class="badge bg-info text-dark">0</span>
+              <span class="ms-3 text-muted small">Total: $<span id="selection-total">0</span></span>
+            </div>
+            <div class="d-flex gap-2">
+              <button id="btn-clear-selection" class="btn btn-sm btn-outline-secondary">Limpiar</button>
+              <button id="btn-reserve-selected" class="btn btn-sm btn-primary fw-bold px-4">Reservar Seleccionadas</button>
+            </div>
+          </div>
         </div>
-        <div class="modal-body">
-          <p class="mb-0">¿Deseás reservar el asiento <strong id="modal-seat-info" class="text-primary fs-5"></strong>?
-          </p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-primary" id="btn-confirm-reservation">Reservar Asiento</button>
-        </div>
-      </div>
+      </section>
     </div>
   </div>
 
@@ -310,9 +305,31 @@
     </div>
   </div>
 
+  <!-- Modal: Carrito -->
+  <div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">🛒 Tu Carrito</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="cart-items-list"></div>
+          <div class="text-end fw-bold mt-3 fs-5">
+            Total: $<span id="cart-total">0</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Seguir Comprando</button>
+          <button id="btn-checkout" class="btn btn-success fw-bold">Pagar Todo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="js/admin.js"></script>
-  <script type="module" src="js/events.js"></script>
+  <script type="module" src="js/admin.js?v=2"></script>
+  <script type="module" src="js/events.js?v=2"></script>
 </body>
 
 </html>

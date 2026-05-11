@@ -550,3 +550,20 @@ h2.text-secondary {
 .opacity-60 {
     opacity: 0.6;
 }
+
+/* ============ Selection bar (multi-seat selection) ============ */
+.selection-bar {
+    position: sticky;
+    bottom: 0;
+    background: rgba(20, 20, 30, .95);
+    border-top: 1px solid rgba(255, 255, 255, .1);
+    border-radius: 0 0 12px 12px;
+    z-index: 10;
+}
+
+.seat-selected {
+    background: #ffc107 !important;
+    color: #000 !important;
+    box-shadow: 0 0 0 2px #fff inset;
+    cursor: pointer;
+}
