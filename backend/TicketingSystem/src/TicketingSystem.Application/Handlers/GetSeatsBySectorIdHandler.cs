@@ -1,6 +1,7 @@
 using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Application.Queries;
+using TicketingSystem.Domain.Constants;
 using TicketingSystem.Domain.Entities;
 
 namespace TicketingSystem.Application.Handlers;
@@ -22,12 +23,13 @@ public class GetSeatsBySectorIdHandler : IGetSeatsBySectorIdHandler
     {
         var seats = await _seatRepository.GetBySectorIdAsync(query.SectorId, cancellationToken);
 
+        // Marcamos las butacas reservadas por el propio usuario para diferenciarlas visualmente ("mi reserva" vs "ocupada por otro").
         HashSet<Guid>? userReservedSeatIds = null;
         if (query.CurrentUserId.HasValue)
         {
             var userReservations = await _reservationRepository.GetByUserIdAsync(query.CurrentUserId.Value, onlyPending: true, cancellationToken);
             userReservedSeatIds = new HashSet<Guid>(
-                userReservations.Where(r => r.Status == "Pending").Select(r => r.SeatId)
+                userReservations.Where(r => r.Status == ReservationStatus.Pending).Select(r => r.SeatId)
             );
         }
 

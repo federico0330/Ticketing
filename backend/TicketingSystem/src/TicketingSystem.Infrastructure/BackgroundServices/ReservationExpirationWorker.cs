@@ -1,14 +1,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TicketingSystem.Application.Interfaces;
+using TicketingSystem.Domain.Constants;
+using TicketingSystem.Domain.Entities;
 
 namespace TicketingSystem.Infrastructure.BackgroundServices;
 
 public class ReservationExpirationWorker : BackgroundService
 {
+    private static readonly TimeSpan CheckInterval = TimeSpan.FromSeconds(10);
+
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ReservationExpirationWorker> _logger;
-    private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(30);
 
     public ReservationExpirationWorker(
         IServiceProvider serviceProvider,
@@ -22,7 +26,7 @@ public class ReservationExpirationWorker : BackgroundService
     {
         _logger.LogInformation("ReservationExpirationWorker is starting.");
 
-        using PeriodicTimer timer = new PeriodicTimer(_checkInterval);
+        using var timer = new PeriodicTimer(CheckInterval);
 
         while (!stoppingToken.IsCancellationRequested && await timer.WaitForNextTickAsync(stoppingToken))
         {
@@ -32,7 +36,7 @@ public class ReservationExpirationWorker : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while processing expired reservations.");
+                _logger.LogError(ex, "[CODE-ERROR] - Error occurred while processing expired reservations.");
             }
         }
 
@@ -41,51 +45,76 @@ public class ReservationExpirationWorker : BackgroundService
 
     private async Task ProcessExpiredReservationsAsync(CancellationToken stoppingToken)
     {
+        // Scope nuevo por tick: el DbContext es scoped y no puede compartirse entre ejecuciones del background service.
         using var scope = _serviceProvider.CreateScope();
-        var reservationRepository = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.IReservationRepository>();
-        var seatRepository = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.ISeatRepository>();
-        var auditLogRepository = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.IAuditLogRepository>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.IUnitOfWork>();
+        var reservationRepository = scope.ServiceProvider.GetRequiredService<IReservationRepository>();
+        var seatRepository = scope.ServiceProvider.GetRequiredService<ISeatRepository>();
+        var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        var expiredReservations = await reservationRepository.GetExpiredReservationsAsync(DateTime.UtcNow);
+        var expiredReservations = await reservationRepository.GetExpiredReservationsAsync(DateTime.UtcNow, stoppingToken);
 
         foreach (var reservation in expiredReservations)
+            await ExpireReservationSafelyAsync(reservation, reservationRepository, seatRepository, auditLogger, unitOfWork, stoppingToken);
+    }
+
+    private async Task ExpireReservationSafelyAsync(
+        Reservation reservation,
+        IReservationRepository reservationRepository,
+        ISeatRepository seatRepository,
+        IAuditLogger auditLogger,
+        IUnitOfWork unitOfWork,
+        CancellationToken cancellationToken)
+    {
+        // Transacción por reserva: si una falla no arrastramos al resto del lote.
+        await unitOfWork.BeginTransactionAsync(cancellationToken);
+        try
         {
-            await unitOfWork.BeginTransactionAsync();
+            reservation.Status = ReservationStatus.Expired;
+            await reservationRepository.UpdateAsync(reservation, cancellationToken);
+
+            var seat = await seatRepository.GetByIdAsync(reservation.SeatId, cancellationToken);
+            if (seat != null)
+            {
+                seat.Status = SeatStatus.Available;
+                seat.Version += 1;
+                await seatRepository.UpdateAsync(seat, cancellationToken);
+            }
+
+            // UserId null porque la acción es del sistema, no de un usuario; queda explícito en auditoría.
+            await auditLogger.LogAsync(null, AuditAction.ReservationExpired, "Reservation", reservation.Id.ToString(), new
+            {
+                reservation.Id,
+                reservation.SeatId,
+                Status = "SUCCESS",
+                TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            }, cancellationToken);
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.CommitTransactionAsync(cancellationToken);
+
+            _logger.LogInformation("Reservation {ReservationId} expired and seat {SeatId} released.", reservation.Id, reservation.SeatId);
+        }
+        catch (Exception ex)
+        {
+            await unitOfWork.RollbackTransactionAsync(cancellationToken);
+            unitOfWork.ClearChanges();
+            _logger.LogError(ex, "[CODE-ERROR] - Failed to expire reservation {ReservationId}.", reservation.Id);
             try
             {
-                reservation.Status = "Expired";
-                await reservationRepository.UpdateAsync(reservation);
-
-                var seat = await seatRepository.GetByIdAsync(reservation.SeatId);
-                if (seat != null)
+                await auditLogger.LogAsync(null, AuditAction.ReservationExpired, "Reservation", reservation.Id.ToString(), new
                 {
-                    seat.Status = "Available";
-                    seat.Version += 1;
-                    await seatRepository.UpdateAsync(seat);
-                }
-
-                await auditLogRepository.CreateAsync(new TicketingSystem.Domain.Entities.AuditLog
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = null, // El usuario es nulo porque la expiración es una tarea automática del sistema
-                    Action = "RESERVE_EXPIRED",
-                    EntityType = "Reservation",
-                    EntityId = reservation.Id.ToString(),
-                    Details = System.Text.Json.JsonSerializer.Serialize(new { reservation.Id, reservation.SeatId }),
-                    CreatedAt = DateTime.UtcNow
-                });
-
-                await unitOfWork.SaveChangesAsync();
-                await unitOfWork.CommitTransactionAsync();
-                
-                _logger.LogInformation("Reservation {ReservationId} expired and seat {SeatId} released.", reservation.Id, reservation.SeatId);
+                    reservation.Id,
+                    reservation.SeatId,
+                    Status = "FAILED",
+                    Error = ex.Message,
+                    TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                }, cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
             }
-            catch (Exception ex)
+            catch (Exception auditEx)
             {
-                await unitOfWork.RollbackTransactionAsync();
-                unitOfWork.ClearChanges();
-                _logger.LogError(ex, "Failed to expire reservation {ReservationId}.", reservation.Id);
+                _logger.LogError(auditEx, "[CODE-ERROR] - No se pudo registrar la auditoría de fallo de expiración.");
             }
         }
     }

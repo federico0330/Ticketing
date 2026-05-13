@@ -1,11 +1,19 @@
 {
   "version": 2,
-  "dgSpecHash": "a2IDMEa40v7kYvUhzeW9wZ3aYviWcZmRAJtDIC0v4U/UxooZMRYs1ysJX085kIc6Z2esTbReI5nMAAE4L2fSDQ==",
+  "dgSpecHash": "nXDrk+1MzgXukbkGORG4jT3hgtAuW8i8fY9eZQRYe5PrA0TqtUYY5JVx7nqccxruXo2OpZFgFaLMJ3CKfaWGjw==",
   "success": true,
   "projectFilePath": "/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Application/TicketingSystem.Application.csproj",
   "expectedPackageFiles": [
+    "/home/federico/.nuget/packages/microsoft.extensions.configuration.abstractions/8.0.0/microsoft.extensions.configuration.abstractions.8.0.0.nupkg.sha512",
+    "/home/federico/.nuget/packages/microsoft.extensions.configuration.binder/8.0.0/microsoft.extensions.configuration.binder.8.0.0.nupkg.sha512",
     "/home/federico/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/8.0.1/microsoft.extensions.dependencyinjection.abstractions.8.0.1.nupkg.sha512",
-    "/home/federico/.nuget/packages/microsoft.extensions.logging.abstractions/8.0.1/microsoft.extensions.logging.abstractions.8.0.1.nupkg.sha512"
+    "/home/federico/.nuget/packages/microsoft.extensions.logging.abstractions/8.0.1/microsoft.extensions.logging.abstractions.8.0.1.nupkg.sha512",
+    "/home/federico/.nuget/packages/microsoft.extensions.primitives/8.0.0/microsoft.extensions.primitives.8.0.0.nupkg.sha512",
+    "/home/federico/.nuget/packages/microsoft.identitymodel.abstractions/8.0.0/microsoft.identitymodel.abstractions.8.0.0.nupkg.sha512",
+    "/home/federico/.nuget/packages/microsoft.identitymodel.jsonwebtokens/8.0.0/microsoft.identitymodel.jsonwebtokens.8.0.0.nupkg.sha512",
+    "/home/federico/.nuget/packages/microsoft.identitymodel.logging/8.0.0/microsoft.identitymodel.logging.8.0.0.nupkg.sha512",
+    "/home/federico/.nuget/packages/microsoft.identitymodel.tokens/8.0.0/microsoft.identitymodel.tokens.8.0.0.nupkg.sha512",
+    "/home/federico/.nuget/packages/system.identitymodel.tokens.jwt/8.0.0/system.identitymodel.tokens.jwt.8.0.0.nupkg.sha512"
   ],
   "logs": []
 }

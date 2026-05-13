@@ -364,3 +364,4 @@
 /home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Presentation/bin/Debug/net8.0/runtimes/win/lib/net8.0/System.Diagnostics.EventLog.Messages.dll
 /home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Presentation/bin/Debug/net8.0/runtimes/win/lib/net8.0/System.Diagnostics.EventLog.dll
 /home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Presentation/bin/Debug/net8.0/runtimes/browser/lib/net8.0/System.Text.Encodings.Web.dll
+/home/federico/Proyecto-Software/Ticketing/backend/TicketingSystem/src/TicketingSystem.Presentation/bin/Debug/net8.0/Microsoft.AspNetCore.Authentication.JwtBearer.dll

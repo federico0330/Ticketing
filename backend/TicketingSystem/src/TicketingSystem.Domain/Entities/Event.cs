@@ -1,3 +1,5 @@
+using TicketingSystem.Domain.Constants;
+
 namespace TicketingSystem.Domain.Entities;
 
 public class Event
@@ -6,7 +8,7 @@ public class Event
     public string Name { get; set; } = string.Empty;
     public DateTime EventDate { get; set; }
     public string Venue { get; set; } = string.Empty;
-    public string Status { get; set; } = "Active";
+    public string Status { get; set; } = EventStatus.Active;
 
     public ICollection<Sector> Sectors { get; set; } = new List<Sector>();
 }

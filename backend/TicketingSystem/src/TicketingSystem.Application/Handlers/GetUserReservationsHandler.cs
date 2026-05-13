@@ -22,8 +22,8 @@ public class GetUserReservationsHandler : IGetUserReservationsHandler
             r.UserId,
             r.SeatId,
             r.Status,
-            r.ReservedAt,
-            r.ExpiresAt
+            DateTime.SpecifyKind(r.ReservedAt, DateTimeKind.Utc),
+            DateTime.SpecifyKind(r.ExpiresAt, DateTimeKind.Utc)
         ));
     }
 }

@@ -18,4 +18,10 @@ public class UserRepository : IUserRepository
     {
         return await _context.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
+
+    public Task<User> CreateAsync(User user, CancellationToken cancellationToken = default)
+    {
+        _context.Users.Add(user);
+        return Task.FromResult(user);
+    }
 }

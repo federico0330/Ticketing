@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
@@ -24,13 +25,14 @@ public class SeatsController : ControllerBase
 
     [HttpGet("sectors/{sectorId}/seats")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetSeatsBySector(int sectorId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetSeatsBySector(int sectorId, [FromQuery] int? userId, CancellationToken cancellationToken)
     {
-        var seats = await _getSeatsBySectorIdHandler.HandleAsync(new GetSeatsBySectorIdQuery(sectorId), cancellationToken);
+        var seats = await _getSeatsBySectorIdHandler.HandleAsync(new GetSeatsBySectorIdQuery(sectorId, userId), cancellationToken);
         return Ok(seats);
     }
 
-    [HttpPost("seats/reservations")]
+    [HttpPost("reservations")]
+    [Authorize]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

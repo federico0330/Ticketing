@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using TicketingSystem.Application.Security;
+using TicketingSystem.Domain.Constants;
 using TicketingSystem.Domain.Entities;
 
 namespace TicketingSystem.Infrastructure.Persistence;
@@ -7,26 +9,32 @@ public static class DbSeeder
 {
     public static async Task SeedAsync(AppDbContext context)
     {
-        if (await context.Events.AnyAsync()) return;
-
-        for (int i = 1; i <= 5; i++)
+        var usersToSeed = new[]
         {
-            var user = new User
+            ("Administrador", "admin@ticketing.com",  "admin"),
+            ("Usuario 1",     "user1@ticketing.com",  "user1"),
+            ("Usuario 2",     "user2@ticketing.com",  "user2"),
+            ("Usuario 3",     "user3@ticketing.com",  "user3"),
+            ("Usuario 4",     "user4@ticketing.com",  "user4"),
+            ("Usuario 5",     "user5@ticketing.com",  "user5"),
+        };
+        foreach (var (name, email, password) in usersToSeed)
+        {
+            if (!await context.Users.AnyAsync(u => u.Email == email))
             {
-                Name = $"Usuario {i}",
-                Email = $"user{i}@ticketing.com",
-                PasswordHash = $"user{i}" 
-            };
-            context.Users.Add(user);
+                context.Users.Add(new User { Name = name, Email = email, PasswordHash = PasswordHasher.Hash(password) });
+            }
         }
         await context.SaveChangesAsync();
+
+        if (await context.Events.AnyAsync()) return;
 
         var concertEvent = new Event
         {
             Name = "Concierto de Rock 2025",
             EventDate = new DateTime(2025, 12, 20, 21, 0, 0, DateTimeKind.Utc),
             Venue = "Estadio Central",
-            Status = "Active"
+            Status = EventStatus.Active
         };
         context.Events.Add(concertEvent);
         await context.SaveChangesAsync();
@@ -70,7 +78,7 @@ public static class DbSeeder
                     SectorId = sectorId,
                     RowIdentifier = row,
                     SeatNumber = number,
-                    Status = "Available",
+                    Status = SeatStatus.Available,
                     Version = 0
                 };
             }

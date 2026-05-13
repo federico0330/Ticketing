@@ -26,6 +26,8 @@
       <span class="navbar-brand mb-0 h1">🎫 Ticketing System</span>
       <div id="user-info" class="d-none align-items-center">
         <span class="text-muted me-3" id="navbar-username"></span>
+        <button id="btn-cart" class="btn btn-sm btn-outline-info me-2 d-none">🛒 Carrito <span id="cart-badge" class="badge bg-info text-dark">0</span></button>
+        <button id="btn-admin" class="btn btn-sm btn-outline-warning me-2 d-none">Crear Evento</button>
         <button id="btn-logout" class="btn btn-sm btn-outline-danger">Cerrar Sesión</button>
       </div>
     </div>
@@ -33,47 +35,162 @@
 
   <div class="container py-4 main-container">
     <div class="main-content-glass p-4 rounded-4 shadow-lg">
-      <div id="alerts-container"></div>
-
-      <div id="loading-spinner" class="text-center my-5 d-none">
-        <div class="spinner-border text-primary spinner" role="status">
-          <span class="visually-hidden">Cargando...</span>
-        </div>
-        <p class="mt-2 text-muted">Cargando...</p>
-      </div>
-
       <!-- Pantalla: Login -->
       <section id="login-section" class="my-auto py-5">
         <div class="row justify-content-center">
-          <div class="col-md-5">
-            <div class="card p-4 shadow border-0">
-              <h3 class="text-center mb-4 text-primary fw-bold">Iniciar Sesión</h3>
+          <div class="col-md-7 col-lg-5 col-xl-4">
+            <div class="auth-hero text-center mb-4">
+              <div class="auth-hero-badge">🎫</div>
+              <h2 class="fw-bold mb-1">Bienvenido</h2>
+              <p class="text-muted mb-0">Reservá tu asiento en segundos.</p>
+            </div>
+
+            <div class="card auth-card p-4 shadow border-0" id="login-card">
+              <h4 class="text-center mb-4 fw-bold auth-card-title">Iniciar Sesión</h4>
               <form id="login-form">
                 <div class="mb-3">
-                  <label class="form-label text-muted">Email</label>
-                  <input type="email" id="login-email" class="form-control bg-dark text-light border-secondary" placeholder="user1@ticketing.com" required>
+                  <label class="form-label">Email</label>
+                  <input type="email" id="login-email" class="form-control form-control-modern" placeholder="tu@email.com" required>
                 </div>
                 <div class="mb-4">
-                  <label class="form-label text-muted">Contraseña</label>
-                  <input type="password" id="login-password" class="form-control bg-dark text-light border-secondary" placeholder="user1" required>
+                  <label class="form-label">Contraseña</label>
+                  <input type="password" id="login-password" class="form-control form-control-modern" placeholder="••••••••" required>
                 </div>
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Entrar al Sistema</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Entrar</button>
               </form>
+              <div class="text-center mt-3">
+                <a href="#" id="show-register-btn" class="text-info text-decoration-none small">¿No tenés cuenta? Registrate</a>
+              </div>
+            </div>
+
+            <div class="card auth-card p-4 shadow border-0 d-none" id="register-card">
+              <h4 class="text-center mb-4 fw-bold auth-card-title">Crear Cuenta</h4>
+              <form id="register-form">
+                <div class="mb-3">
+                  <label class="form-label">Nombre</label>
+                  <input type="text" id="register-name" class="form-control form-control-modern" placeholder="Tu nombre" required>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <input type="email" id="register-email" class="form-control form-control-modern" placeholder="tu@email.com" required>
+                </div>
+                <div class="mb-4">
+                  <label class="form-label">Contraseña</label>
+                  <input type="password" id="register-password" class="form-control form-control-modern" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Registrarme</button>
+              </form>
+              <div class="text-center mt-3">
+                <a href="#" id="show-login-btn" class="text-info text-decoration-none small">¿Ya tenés cuenta? Iniciá sesión</a>
+              </div>
             </div>
           </div>
-          <div class="col-md-5 mt-4 mt-md-0">
-            <div class="card p-4 border-info h-100" style="background: rgba(13, 202, 240, 0.05) !important;">
-              <h5 class="text-info mb-3">🗝️ Credenciales de Prueba (Seed)</h5>
-              <p class="small text-muted mb-2">Usá cualquiera de los siguientes usuarios para probar la concurrencia:</p>
-              <ul class="list-unstyled mb-0">
-                <li class="mb-2"><strong>Email:</strong> <code>user1@ticketing.com</code> / <strong>Pass:</strong> <code>user1</code></li>
-                <li class="mb-2"><strong>Email:</strong> <code>user2@ticketing.com</code> / <strong>Pass:</strong> <code>user2</code></li>
-                <li class="mb-2"><strong>Email:</strong> <code>user3@ticketing.com</code> / <strong>Pass:</strong> <code>user3</code></li>
-                <li class="mb-2"><strong>Email:</strong> <code>user4@ticketing.com</code> / <strong>Pass:</strong> <code>user4</code></li>
-                <li><strong>Email:</strong> <code>user5@ticketing.com</code> / <strong>Pass:</strong> <code>user5</code></li>
+        </div>
+      </section>
+
+      <!-- Pantalla: Admin -->
+      <section id="admin-section" class="d-none">
+        <div class="d-flex justify-content-between align-items-center mb-4 admin-header">
+          <div>
+            <h2 class="mb-1 fw-bold admin-title">Crear Evento</h2>
+            <p class="text-muted small mb-0">Configurá el evento, agregá sectores y publicalo.</p>
+          </div>
+          <button id="btn-admin-back-events" class="btn btn-outline-secondary">← Volver</button>
+        </div>
+
+        <!-- Paso 1: Datos del evento -->
+        <div class="card admin-step-card p-4 mb-4 border-0 shadow-sm">
+          <div class="step-header mb-3">
+            <span class="step-badge">1</span>
+            <h5 class="mb-0">Datos del Evento</h5>
+          </div>
+          <form id="admin-event-form">
+            <div class="row g-3">
+              <div class="col-md-5">
+                <label class="form-label">Nombre del Evento</label>
+                <input type="text" id="admin-event-name" class="form-control form-control-modern" placeholder="Ej: Concierto Rock 2026">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Fecha y Hora</label>
+                <input type="datetime-local" id="admin-event-date" class="form-control form-control-modern">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Lugar</label>
+                <input type="text" id="admin-event-venue" class="form-control form-control-modern" placeholder="Ej: Luna Park">
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <!-- Paso 2: Diseñar sector -->
+          <div class="col-lg-8">
+            <div class="card admin-step-card p-4 border-0 shadow-sm h-100">
+              <div class="step-header mb-3">
+                <span class="step-badge">2</span>
+                <h5 class="mb-0">Diseñar Sector</h5>
+              </div>
+
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre del Sector</label>
+                  <input type="text" id="admin-sector-name" class="form-control form-control-modern" placeholder="Ej: Platea Baja">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Precio ($)</label>
+                  <input type="number" id="admin-sector-price" class="form-control form-control-modern" min="0" placeholder="0">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Filas</label>
+                  <input type="number" id="admin-sector-rows" class="form-control form-control-modern" min="1" max="50" value="5">
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Columnas</label>
+                  <input type="number" id="admin-sector-cols" class="form-control form-control-modern" min="1" max="50" value="10">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                  <button id="btn-admin-generate-grid" class="btn btn-info w-100">Generar Grilla</button>
+                </div>
+              </div>
+
+              <div class="seat-legend d-flex gap-4 justify-content-center mb-3 small">
+                <span class="d-flex align-items-center">
+                  <span class="seat-available legend-swatch me-2"></span>Activo
+                </span>
+                <span class="d-flex align-items-center">
+                  <span class="seat-inactive legend-swatch me-2"></span>Inactivo
+                </span>
+                <span class="text-muted">Click para alternar</span>
+              </div>
+
+              <div class="grid-canvas mb-3">
+                <div id="admin-seat-grid" class="seat-grid d-inline-grid gap-2 justify-content-center mx-auto"></div>
+              </div>
+
+              <button id="btn-admin-add-sector" class="btn btn-primary w-100">+ Agregar Sector al Evento</button>
+            </div>
+          </div>
+
+          <!-- Paso 3: Sectores agregados -->
+          <div class="col-lg-4">
+            <div class="card admin-step-card p-4 border-0 shadow-sm h-100 d-flex flex-column">
+              <div class="step-header mb-3">
+                <span class="step-badge">3</span>
+                <h5 class="mb-0">Sectores Agregados</h5>
+              </div>
+              <ul id="admin-sectors-list" class="list-group list-group-flush flex-grow-1 sectors-list">
+                <li class="list-group-item sectors-empty text-center text-muted py-4">
+                  <div class="empty-icon mb-2">🎭</div>
+                  Aún no agregaste sectores
+                </li>
               </ul>
             </div>
           </div>
+        </div>
+
+        <!-- Barra de acción -->
+        <div class="admin-action-bar d-flex justify-content-end gap-2">
+          <button id="btn-admin-create-event" class="btn btn-warning fw-bold px-4 py-2">✓ Crear Evento</button>
         </div>
       </section>
 
@@ -95,47 +212,169 @@
         <button id="btn-back-sectors" class="btn btn-outline-secondary mb-3">← Volver a Sectores</button>
         <h2 class="mb-3 text-secondary border-bottom pb-2" id="sector-title">Mapa de Asientos</h2>
 
-        <div class="mb-4 d-flex gap-3 align-items-center justify-content-center p-3 rounded shadow legend-container">
+        <div class="mb-4 d-flex flex-wrap gap-3 align-items-center justify-content-center p-3 rounded shadow legend-container">
           <div class="d-flex align-items-center">
             <div class="seat-available rounded me-2" style="width:20px;height:20px;"></div> Disponible
           </div>
           <div class="d-flex align-items-center">
-            <div class="seat-reserved rounded me-2" style="width:20px;height:20px;"></div> Reservado
+            <div class="seat-selected rounded me-2" style="width:20px;height:20px;"></div> Seleccionado
           </div>
           <div class="d-flex align-items-center">
-            <div class="seat-sold rounded me-2" style="width:20px;height:20px;"></div> Vendido
+            <div class="seat-unavailable rounded me-2" style="width:20px;height:20px;"></div> Ocupado
+          </div>
+          <div class="d-flex align-items-center">
+            <span class="me-2" style="font-size:18px;color:#fbbf24;">★</span> Mi reserva
           </div>
         </div>
 
         <div class="card p-4 shadow-sm text-center overflow-auto">
           <div id="seats-grid" class="seat-grid d-inline-grid gap-2 justify-content-center mx-auto"></div>
         </div>
+
+        <div id="selection-bar" class="selection-bar d-none mt-3">
+          <div class="d-flex justify-content-between align-items-center py-2 px-3">
+            <div>
+              <span class="fw-bold">Butacas seleccionadas: </span>
+              <span id="selection-count" class="badge bg-info text-dark">0</span>
+              <span class="ms-3 text-muted small">Total: $<span id="selection-total">0</span></span>
+            </div>
+            <div class="d-flex gap-2">
+              <button id="btn-clear-selection" class="btn btn-sm btn-outline-secondary">Limpiar</button>
+              <button id="btn-reserve-selected" class="btn btn-sm btn-primary fw-bold px-4">Reservar Seleccionadas</button>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   </div>
 
-  <!-- Modal: Confirmar Reserva -->
-  <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <!-- Modal: Editar Evento -->
+  <div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Confirmar Reserva</h5>
+          <h5 class="modal-title text-warning">Editar Evento</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p class="mb-0">¿Deseás reservar el asiento <strong id="modal-seat-info" class="text-primary fs-5"></strong>?
-          </p>
+          <form id="edit-event-form">
+            <div class="mb-3">
+              <label class="form-label text-muted">Nombre</label>
+              <input type="text" id="edit-event-name" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted">Fecha y Hora</label>
+              <input type="datetime-local" id="edit-event-date" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label text-muted">Lugar (Venue)</label>
+              <input type="text" id="edit-event-venue" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="button" class="btn btn-primary" id="btn-confirm-reservation">Reservar Asiento</button>
+          <button type="button" class="btn btn-warning" id="btn-confirm-edit-event">Guardar Cambios</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Modal: Confirmar Eliminación -->
+  <div class="modal fade" id="deleteEventModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-danger">
+          <h5 class="modal-title text-danger">Eliminar Evento</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">¿Estás seguro de que querés eliminar <strong id="delete-event-name" class="text-danger"></strong>? Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-danger" id="btn-confirm-delete-event">Eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Carrito -->
+  <div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">🛒 Tu Carrito</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="cart-items-list"></div>
+          <div class="text-end fw-bold mt-3 fs-5">
+            Total: $<span id="cart-total">0</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Seguir Comprando</button>
+          <button id="btn-checkout" class="btn btn-success fw-bold">Pagar Todo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment / Cart Modal -->
+  <div class="modal fade" id="paymentModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true" data-sys-render="auto">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-light">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">🛒 Detalle de Pago</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-center">
+          <div class="alert alert-info py-2 mb-3">
+            <h6 class="mb-0">Total a pagar: <span id="total-amount" class="fw-bold text-primary">$0</span></h6>
+            <small class="text-muted">(<span id="reservation-count">0</span> entradas x $10.000)</small>
+          </div>
+          <form id="payment-form">
+            <div class="mb-3 text-start">
+              <label for="cardName" class="form-label">Nombre en la tarjeta</label>
+              <input type="text" class="form-control" id="cardName" required placeholder="Ej: Juan Perez">
+            </div>
+            <div class="mb-3 text-start">
+              <label for="cardNumber" class="form-label">Número de Tarjeta (Simulación)</label>
+              <input type="text" class="form-control" id="cardNumber" required placeholder="#### #### #### ####" minlength="19" maxlength="19">
+              <small class="text-muted">Tip: Termina en "0000" para simular un rechazo bancario.</small>
+            </div>
+            <div class="row">
+              <div class="col-md-7 mb-3 text-start">
+                <label for="cardExpiry" class="form-label">Vencimiento</label>
+                <input type="text" class="form-control" id="cardExpiry" required placeholder="MM/YYYY" maxlength="7">
+              </div>
+              <div class="col-md-5 mb-3 text-start">
+                <label for="cardCvv" class="form-label">CVV</label>
+                <input type="text" class="form-control" id="cardCvv" required placeholder="123" maxlength="3">
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" form="payment-form" class="btn btn-success" id="btn-submit-payment">Confirmar Pago</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlays -->
+  <div id="loading-spinner" class="overlay-spinner d-none">
+    <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+  </div>
+  <div id="alerts-container" class="overlay-alerts"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="js/events.js"></script>
+  <script type="module" src="js/admin.js?v=2"></script>
+  <script type="module" src="js/events.js?v=2"></script>
 </body>
 
 </html>

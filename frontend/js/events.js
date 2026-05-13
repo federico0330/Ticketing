@@ -1,5 +1,6 @@
-import { fetchEvents, fetchSectorsByEvent, login, fetchMyReservations } from './api.js';
-import { loadSeats, checkAndShowActiveReservation } from './seats.js';
+import { fetchEvents, fetchSectorsByEvent, login, register, fetchMyReservations, updateEvent, deleteEvent } from './api.js';
+import { loadSeats, checkAndShowActiveReservation, stopSeatsPolling } from './seats.js?v=2';
+import { clearCart, updateCartBadge, getCart } from './cart.js';
 
 const loginSection = document.getElementById('login-section');
 const eventsSection = document.getElementById('events-section');
@@ -10,21 +11,48 @@ const seatsSection = document.getElementById('seats-section');
 const spinner = document.getElementById('loading-spinner');
 const eventTitle = document.getElementById('event-title');
 
+let _editingEvent = null;
+let _deletingEventId = null;
+
 const userInfo = document.getElementById('user-info');
 const navbarUsername = document.getElementById('navbar-username');
 const btnLogout = document.getElementById('btn-logout');
 const loginForm = document.getElementById('login-form');
 
+const btnAdmin = document.getElementById('btn-admin');
+const adminSection = document.getElementById('admin-section');
+const loginCard = document.getElementById('login-card');
+const registerCard = document.getElementById('register-card');
+const registerForm = document.getElementById('register-form');
+
 document.addEventListener('DOMContentLoaded', init);
 
 async function init() {
-        document.getElementById('btn-back-events').addEventListener('click', showEvents);
+    document.getElementById('btn-back-events').addEventListener('click', showEvents);
     document.getElementById('btn-back-sectors').addEventListener('click', showSectors);
     
-        loginForm.addEventListener('submit', handleLogin);
+    loginForm.addEventListener('submit', handleLogin);
     btnLogout.addEventListener('click', handleLogout);
+    if (btnAdmin) btnAdmin.addEventListener('click', showAdminSection);
 
-        const savedUser = localStorage.getItem('currentUser');
+    document.getElementById('btn-confirm-edit-event').addEventListener('click', handleEditConfirm);
+    document.getElementById('btn-confirm-delete-event').addEventListener('click', handleDeleteConfirm);
+
+    document.getElementById('show-register-btn').addEventListener('click', e => {
+        e.preventDefault();
+        loginCard.classList.add('d-none');
+        registerCard.classList.remove('d-none');
+    });
+    document.getElementById('show-login-btn').addEventListener('click', e => {
+        e.preventDefault();
+        registerCard.classList.add('d-none');
+        loginCard.classList.remove('d-none');
+    });
+    registerForm.addEventListener('submit', handleRegister);
+
+    updateCartBadge();
+
+    const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         const user = JSON.parse(savedUser);
         showAuthenticatedUI(user);
@@ -52,14 +80,39 @@ async function handleLogin(e) {
     }
 }
 
+async function handleRegister(e) {
+    e.preventDefault();
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+
+    showLoading();
+    const result = await register(name, email, password);
+    hideLoading();
+
+    if (result.ok) {
+        localStorage.setItem('currentUser', JSON.stringify(result.data));
+        showAuthenticatedUI(result.data);
+        await loadEvents();
+        await checkUserReservations(result.data.Id);
+    } else {
+        showAlert(result.data?.Message || 'Error al registrarse', 'error');
+    }
+}
+
+// Al volver a la app (refresh, re-login) recuperamos la reserva activa para que el timer y el carrito sigan reflejando la realidad del backend.
 async function checkUserReservations(userId) {
     try {
         const reservations = await fetchMyReservations(userId);
-        if (reservations && reservations.length > 0) {
-            const pendingReservation = reservations.find(r => r.Status === 'Pending');
-            if (pendingReservation) {
-                checkAndShowActiveReservation(pendingReservation);
-            }
+        const now = Date.now();
+        const pendingReservation = (reservations || []).find(r =>
+            r.Status === 'Pending' && new Date(r.ExpiresAt).getTime() > now
+        );
+        if (pendingReservation) {
+            checkAndShowActiveReservation(pendingReservation);
+        } else if (getCart().length > 0) {
+            // El cart en localStorage quedó stale (expiró/se pagó en otro tab): lo limpiamos para no mostrar items fantasma.
+            clearCart();
         }
     } catch (error) {
         console.error('Error checking user reservations:', error);
@@ -67,13 +120,20 @@ async function checkUserReservations(userId) {
 }
 
 function handleLogout() {
+    stopSeatsPolling();
     localStorage.removeItem('currentUser');
+    clearCart();
     userInfo.classList.add('d-none');
     eventsSection.classList.add('d-none');
     sectorsSection.classList.add('d-none');
     seatsSection.classList.add('d-none');
+    if(adminSection) adminSection.classList.add('d-none');
+    if(btnAdmin) btnAdmin.classList.add('d-none');
     loginSection.classList.remove('d-none');
     loginForm.reset();
+    if(registerForm) registerForm.reset();
+    loginCard.classList.remove('d-none');
+    registerCard.classList.add('d-none');
 }
 
 function showAuthenticatedUI(user) {
@@ -82,15 +142,31 @@ function showAuthenticatedUI(user) {
     userInfo.classList.add('d-flex');
     eventsSection.classList.remove('d-none');
     navbarUsername.innerText = `Hola, ${user.Name}`;
+    
+    if (user.Role === 'Admin') {
+        btnAdmin.classList.remove('d-none');
+    } else {
+        btnAdmin.classList.add('d-none');
+    }
+}
+
+function showAdminSection() {
+    eventsSection.classList.add('d-none');
+    sectorsSection.classList.add('d-none');
+    seatsSection.classList.add('d-none');
+    adminSection.classList.remove('d-none');
 }
 
 export function showEvents() {
+    stopSeatsPolling();
     sectorsSection.classList.add('d-none');
     seatsSection.classList.add('d-none');
+    if(adminSection) adminSection.classList.add('d-none');
     eventsSection.classList.remove('d-none');
 }
 
 export function showSectors() {
+    stopSeatsPolling();
     seatsSection.classList.add('d-none');
     sectorsSection.classList.remove('d-none');
 }
@@ -134,30 +210,90 @@ export async function loadEvents() {
     }
 }
 
+function getRelativeDate(dateStr) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.round((date - now) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Hoy';
+    if (diffDays === 1) return 'Mañana';
+    if (diffDays === -1) return 'Ayer';
+    if (diffDays > 0) return `En ${diffDays} días`;
+    return `Hace ${Math.abs(diffDays)} días`;
+}
+
+function getStatusBadge(status) {
+    if (status === 'Active') return '<span class="badge bg-success ms-2">Activo</span>';
+    if (status === 'Deleted') return '<span class="badge bg-danger ms-2">Eliminado</span>';
+    return `<span class="badge bg-secondary ms-2">${status}</span>`;
+}
+
 function renderEvents(events) {
     eventsList.innerHTML = '';
     if (!events || events.length === 0) {
         eventsList.innerHTML = '<p class="text-muted">No hay eventos disponibles.</p>';
         return;
     }
+
+    let isAdmin = false;
+    try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser && currentUser.Role === 'Admin') {
+            isAdmin = true;
+        }
+    } catch (e) {}
+
     events.forEach(event => {
         const card = document.createElement('div');
-        card.className = 'col-md-4 mb-4';
+        card.className = 'col-md-6 mb-4';
+
+        const isDeleted = event.Status === 'Deleted';
+
+        let adminActionsHtml = '';
+        if (isAdmin) {
+            adminActionsHtml = `
+                <div class="event-admin-actions">
+                    <button type="button" class="icon-btn icon-btn-edit" data-action="edit" title="Modificar evento" aria-label="Modificar evento">
+                        <span aria-hidden="true">✏️</span>
+                    </button>
+                    <button type="button" class="icon-btn icon-btn-delete" data-action="delete" title="Eliminar evento" aria-label="Eliminar evento">
+                        <span aria-hidden="true">🗑️</span>
+                    </button>
+                </div>
+            `;
+        }
+
         card.innerHTML = `
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-body">
-                    <h5 class="card-title text-primary fw-bold">${event.Name}</h5>
+            <div class="card h-100 border-0 position-relative event-card ${isDeleted ? 'opacity-60' : ''}">
+                ${adminActionsHtml}
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-center mb-2 pe-5">
+                        <h5 class="card-title fw-bold mb-0 event-card-title">${event.Name}</h5>
+                        ${getStatusBadge(event.Status)}
+                    </div>
                     <p class="card-text mb-1 text-muted">
                         <small>📅 ${new Date(event.EventDate).toLocaleString('es-AR')}</small>
+                        <span class="badge bg-secondary ms-2 fw-normal" style="font-size:0.7rem;">${getRelativeDate(event.EventDate)}</span>
                     </p>
                     <p class="card-text mb-3 text-muted">
                         <small>📍 ${event.Venue}</small>
                     </p>
-                    <button class="btn btn-outline-primary w-100 mt-auto">Ver Sectores</button>
+                    <div class="d-flex gap-3 mb-3 event-stats">
+                        <span class="small text-muted">🎭 <strong class="text-light">${event.SectorCount}</strong> sector${event.SectorCount !== 1 ? 'es' : ''}</span>
+                        <span class="small text-muted">💺 <strong class="text-light">${event.TotalSeats}</strong> butaca${event.TotalSeats !== 1 ? 's' : ''}</span>
+                    </div>
+                    <button class="btn btn-primary w-100 mt-auto" data-action="view" ${isDeleted ? 'disabled' : ''}>Ver Sectores →</button>
                 </div>
             </div>
         `;
-        card.querySelector('button').addEventListener('click', () => loadSectors(event.Id, event.Name));
+        if (!isDeleted) {
+            card.querySelector('[data-action="view"]').addEventListener('click', () => loadSectors(event.Id, event.Name));
+        }
+        if (isAdmin) {
+            const editBtn = card.querySelector('[data-action="edit"]');
+            const deleteBtn = card.querySelector('[data-action="delete"]');
+            editBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openEditModal(event); });
+            deleteBtn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openDeleteModal(event.Id, event.Name); });
+        }
         eventsList.appendChild(card);
     });
 }
@@ -171,6 +307,53 @@ export async function loadSectors(eventId, eventName) {
         showAlert('No se pudieron cargar los sectores.', 'error');
     } finally {
         hideLoading();
+    }
+}
+
+function openEditModal(event) {
+    _editingEvent = event;
+    document.getElementById('edit-event-name').value = event.Name;
+    document.getElementById('edit-event-date').value = event.EventDate.substring(0, 16);
+    document.getElementById('edit-event-venue').value = event.Venue;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('editEventModal')).show();
+}
+
+function openDeleteModal(id, name) {
+    _deletingEventId = id;
+    document.getElementById('delete-event-name').textContent = name;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteEventModal')).show();
+}
+
+async function handleEditConfirm() {
+    const name = document.getElementById('edit-event-name').value.trim();
+    const eventDate = document.getElementById('edit-event-date').value;
+    const venue = document.getElementById('edit-event-venue').value.trim();
+    if (!name || !eventDate || !venue) return;
+
+    bootstrap.Modal.getInstance(document.getElementById('editEventModal'))?.hide();
+    showLoading();
+    const result = await updateEvent(_editingEvent.Id, { Name: name, EventDate: eventDate, Venue: venue });
+    hideLoading();
+
+    if (result.ok) {
+        showAlert('Evento actualizado correctamente.', 'success');
+        await loadEvents();
+    } else {
+        showAlert(result.data?.Message || 'Error al actualizar el evento.', 'error');
+    }
+}
+
+async function handleDeleteConfirm() {
+    bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'))?.hide();
+    showLoading();
+    const result = await deleteEvent(_deletingEventId);
+    hideLoading();
+
+    if (result.ok) {
+        showAlert('Evento eliminado correctamente.', 'success');
+        await loadEvents();
+    } else {
+        showAlert('Error al eliminar el evento.', 'error');
     }
 }
 
@@ -196,7 +379,7 @@ function renderSectors(sectors, eventName) {
         `;
         col.querySelector('button').addEventListener('click', () => {
             sectorsSection.classList.add('d-none');
-            loadSeats(sector.Id, sector.Name);
+            loadSeats(sector.Id, sector.Name, sector.Price, eventName);
         });
         sectorsList.appendChild(col);
     });

@@ -15,14 +15,16 @@ public class GetAllEventsHandler : IGetAllEventsHandler
 
     public async Task<IEnumerable<EventDto>> HandleAsync(GetAllEventsQuery query, CancellationToken cancellationToken = default)
     {
-        var events = await _eventRepository.GetAllAsync(cancellationToken);
+        var events = await _eventRepository.GetAllAsync(query.IsAdmin, cancellationToken);
 
         return events.Select(e => new EventDto(
             e.Id,
             e.Name,
             e.EventDate,
             e.Venue,
-            e.Status
+            e.Status,
+            e.Sectors.Count,
+            e.Sectors.Sum(s => s.Seats.Count)
         ));
     }
 }

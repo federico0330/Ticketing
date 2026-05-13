@@ -1,6 +1,12 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.OpenApi.Models;
 using TicketingSystem.Application.Handlers;
 using TicketingSystem.Application.Interfaces;
+using TicketingSystem.Application.Security;
+using TicketingSystem.Application.Services;
 using TicketingSystem.Infrastructure.Persistence;
 using TicketingSystem.Infrastructure.Repositories;
 
@@ -16,28 +22,77 @@ builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// Registramos dependencias por interfaz para facilitar testing y desacoplar la implementación
+// Inyectamos por interfaz (DIP): los controllers no conocen la implementación concreta y los handlers son sustituibles en tests.
 builder.Services.AddScoped<IGetAllEventsHandler, GetAllEventsHandler>();
 builder.Services.AddScoped<IGetSectorsByEventIdHandler, GetSectorsByEventIdHandler>();
 builder.Services.AddScoped<IGetSeatsBySectorIdHandler, GetSeatsBySectorIdHandler>();
 builder.Services.AddScoped<IGetUserReservationsHandler, GetUserReservationsHandler>();
 builder.Services.AddScoped<ICreateReservationHandler, CreateReservationHandler>();
+builder.Services.AddScoped<ICreateEventHandler, CreateEventHandler>();
+builder.Services.AddScoped<IUpdateEventHandler, UpdateEventHandler>();
+builder.Services.AddScoped<IDeleteEventHandler, DeleteEventHandler>();
 builder.Services.AddScoped<IConfirmPaymentHandler, ConfirmPaymentHandler>();
+builder.Services.AddScoped<IConfirmBatchPaymentHandler, ConfirmBatchPaymentHandler>();
+builder.Services.AddScoped<ICreateBatchReservationHandler, CreateBatchReservationHandler>();
 builder.Services.AddScoped<ILoginHandler, LoginHandler>();
+builder.Services.AddScoped<IRegisterHandler, RegisterHandler>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuditLogger, AuditLogger>();
 
 builder.Services.AddHostedService<TicketingSystem.Infrastructure.BackgroundServices.ReservationExpirationWorker>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        // Mantenemos PascalCase en el JSON para que el frontend (que consume Id, Name, etc.) no necesite mapear nombres.
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    });
+
+// JWT Authentication configuration
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? ""))
+        };
     });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "Ticketing System API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ticketing System API", Version = "v1" });
+
+    // Swagger JWT
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer"
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 builder.Services.AddCors(options =>
@@ -48,6 +103,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Retry de migración/seed: en docker-compose la API arranca antes de que SQL Server termine de inicializar.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -92,6 +148,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
 
 if (app.Environment.IsDevelopment())
