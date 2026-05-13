@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TicketingSystem.Domain.Constants;
 using TicketingSystem.Domain.Entities;
 
 namespace TicketingSystem.Infrastructure.Persistence;
@@ -25,7 +26,7 @@ public class AppDbContext : DbContext
             builder.Property(e => e.Name).IsRequired();
             builder.Property(e => e.EventDate).IsRequired();
             builder.Property(e => e.Venue).IsRequired();
-            builder.Property(e => e.Status).IsRequired().HasDefaultValue("Active");
+            builder.Property(e => e.Status).IsRequired().HasDefaultValue(EventStatus.Active);
         });
 
         modelBuilder.Entity<Sector>(builder =>
@@ -49,7 +50,7 @@ public class AppDbContext : DbContext
             builder.Property(s => s.Id).ValueGeneratedNever();
             builder.Property(s => s.RowIdentifier).IsRequired();
             builder.Property(s => s.SeatNumber).IsRequired();
-            builder.Property(s => s.Status).IsRequired().HasDefaultValue("Available");
+            builder.Property(s => s.Status).IsRequired().HasDefaultValue(SeatStatus.Available);
 
             // Concurrency token: garantiza 409 en vez de last-write-wins cuando dos usuarios pelean la misma butaca.
             builder.Property(s => s.Version).IsRequired().HasDefaultValue(0)
@@ -76,7 +77,7 @@ public class AppDbContext : DbContext
             builder.ToTable("RESERVATION");
             builder.HasKey(r => r.Id);
             builder.Property(r => r.Id).ValueGeneratedNever();
-            builder.Property(r => r.Status).IsRequired().HasDefaultValue("Pending");
+            builder.Property(r => r.Status).IsRequired().HasDefaultValue(ReservationStatus.Pending);
             builder.Property(r => r.ReservedAt).IsRequired();
             builder.Property(r => r.ExpiresAt).IsRequired();
             // Restrict en lugar de Cascade: las reservas son evidencia histórica, no deben desaparecer si se borra un user o un seat.

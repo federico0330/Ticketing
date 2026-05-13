@@ -56,7 +56,7 @@ export async function login(email, password) {
 
 export async function register(name, email, password) {
     try {
-        const response = await fetch(`${BASE_URL}/Auth/register`, {
+        const response = await fetch(`${BASE_URL}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ Name: name, Email: email, Password: password })

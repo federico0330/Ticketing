@@ -1,5 +1,6 @@
 using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.Interfaces;
+using TicketingSystem.Domain.Constants;
 using TicketingSystem.Domain.Exceptions;
 
 namespace TicketingSystem.Application.Handlers;
@@ -20,11 +21,11 @@ public class DeleteEventHandler : IDeleteEventHandler
         var @event = await _eventRepository.GetByIdAsync(command.Id, cancellationToken)
             ?? throw new EventNotFoundException(command.Id);
 
-        if (@event.Status == "Deleted")
+        if (@event.Status == EventStatus.Deleted)
             return;
 
         // Soft delete: conservamos el evento para no romper reservas históricas que lo referencian.
-        @event.Status = "Deleted";
+        @event.Status = EventStatus.Deleted;
 
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
         try

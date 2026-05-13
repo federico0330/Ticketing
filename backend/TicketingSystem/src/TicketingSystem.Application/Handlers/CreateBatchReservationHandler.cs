@@ -1,8 +1,8 @@
-using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
+using TicketingSystem.Domain.Constants;
 using TicketingSystem.Domain.Entities;
 using TicketingSystem.Domain.Exceptions;
 
@@ -10,24 +10,25 @@ namespace TicketingSystem.Application.Handlers;
 
 public class CreateBatchReservationHandler : ICreateBatchReservationHandler
 {
+    private const string ConcurrencyConflictReason = "Concurrency conflict";
+    private static readonly TimeSpan ReservationDuration = TimeSpan.FromMinutes(5);
+
     private readonly ISeatRepository _seatRepository;
     private readonly IReservationRepository _reservationRepository;
-    private readonly IAuditLogRepository _auditLogRepository;
+    private readonly IAuditLogger _auditLogger;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CreateBatchReservationHandler> _logger;
-
-    private static readonly TimeSpan ReservationDuration = TimeSpan.FromMinutes(5);
 
     public CreateBatchReservationHandler(
         ISeatRepository seatRepository,
         IReservationRepository reservationRepository,
-        IAuditLogRepository auditLogRepository,
+        IAuditLogger auditLogger,
         IUnitOfWork unitOfWork,
         ILogger<CreateBatchReservationHandler> logger)
     {
         _seatRepository = seatRepository;
         _reservationRepository = reservationRepository;
-        _auditLogRepository = auditLogRepository;
+        _auditLogger = auditLogger;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -38,7 +39,7 @@ public class CreateBatchReservationHandler : ICreateBatchReservationHandler
         if (seatIds.Count == 0)
             throw new ArgumentException("El lote debe contener al menos una butaca.");
 
-        await LogAuditAsync(command.UserId, "RESERVE_ATTEMPT", "Seat", string.Join(",", seatIds), new
+        await _auditLogger.LogAsync(command.UserId, AuditAction.ReserveAttempt, "Seat", string.Join(",", seatIds), new
         {
             SeatIds = seatIds,
             command.UserId,
@@ -59,7 +60,7 @@ public class CreateBatchReservationHandler : ICreateBatchReservationHandler
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             foreach (var reservation in reservations)
-                await LogAuditAsync(command.UserId, "RESERVE_SUCCESS", "Reservation", reservation.Id.ToString(), new
+                await _auditLogger.LogAsync(command.UserId, AuditAction.ReserveSuccess, "Reservation", reservation.Id.ToString(), new
                 {
                     ReservationId = reservation.Id,
                     reservation.SeatId,
@@ -71,19 +72,16 @@ public class CreateBatchReservationHandler : ICreateBatchReservationHandler
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
-            var dtos = reservations.Select(r => new ReservationDto(
-                r.Id,
-                r.UserId,
-                r.SeatId,
-                r.Status,
-                DateTime.SpecifyKind(r.ReservedAt, DateTimeKind.Utc),
-                DateTime.SpecifyKind(r.ExpiresAt, DateTimeKind.Utc)
-            )).ToList();
-            return new BatchReservationResponse { Success = true, Message = $"Reservaste {seatIds.Count} butaca(s).", Reservations = dtos };
+            return new BatchReservationResponse
+            {
+                Success = true,
+                Message = $"Reservaste {seatIds.Count} butaca(s).",
+                Reservations = reservations.Select(ToDto).ToList()
+            };
         }
         catch (ConcurrencyException ex)
         {
-            await HandleBatchFailureAsync("Concurrency conflict", ex, command, seatIds, cancellationToken);
+            await HandleBatchFailureAsync(ConcurrencyConflictReason, ex, command, seatIds, cancellationToken);
             throw;
         }
         catch (Exception ex)
@@ -97,9 +95,9 @@ public class CreateBatchReservationHandler : ICreateBatchReservationHandler
     {
         var seat = await _seatRepository.GetByIdAsync(seatId, cancellationToken);
         if (seat is null) throw new SeatNotFoundException(seatId);
-        if (seat.Status != "Available") throw new SeatNotAvailableException(seatId);
+        if (seat.Status != SeatStatus.Available) throw new SeatNotAvailableException(seatId);
 
-        seat.Status = "Reserved";
+        seat.Status = SeatStatus.Reserved;
         seat.Version += 1;
         await _seatRepository.UpdateAsync(seat, cancellationToken);
 
@@ -108,7 +106,7 @@ public class CreateBatchReservationHandler : ICreateBatchReservationHandler
             Id = Guid.NewGuid(),
             UserId = userId,
             SeatId = seatId,
-            Status = "Pending",
+            Status = ReservationStatus.Pending,
             ReservedAt = now,
             ExpiresAt = now.Add(ReservationDuration)
         };
@@ -116,25 +114,20 @@ public class CreateBatchReservationHandler : ICreateBatchReservationHandler
         return reservation;
     }
 
-    private async Task LogAuditAsync(int userId, string action, string entityType, string entityId, object details, CancellationToken cancellationToken)
-    {
-        await _auditLogRepository.CreateAsync(new AuditLog
-        {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            Action = action,
-            EntityType = entityType,
-            EntityId = entityId,
-            Details = JsonSerializer.Serialize(details),
-            CreatedAt = DateTime.UtcNow
-        }, cancellationToken);
-    }
+    private static ReservationDto ToDto(Reservation reservation) => new(
+        reservation.Id,
+        reservation.UserId,
+        reservation.SeatId,
+        reservation.Status,
+        DateTime.SpecifyKind(reservation.ReservedAt, DateTimeKind.Utc),
+        DateTime.SpecifyKind(reservation.ExpiresAt, DateTimeKind.Utc)
+    );
 
     private async Task HandleBatchFailureAsync(string reason, Exception ex, CreateBatchReservationCommand command, List<Guid> seatIds, CancellationToken cancellationToken)
     {
         await _unitOfWork.RollbackTransactionAsync(cancellationToken);
         _unitOfWork.ClearChanges();
-        await LogAuditAsync(command.UserId, "RESERVE_FAILED", "Seat", string.Join(",", seatIds), new
+        await _auditLogger.LogAsync(command.UserId, AuditAction.ReserveFailed, "Seat", string.Join(",", seatIds), new
         {
             SeatIds = seatIds,
             command.UserId,
@@ -143,7 +136,7 @@ public class CreateBatchReservationHandler : ICreateBatchReservationHandler
             TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
         }, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-        if (reason == "Concurrency conflict")
+        if (reason == ConcurrencyConflictReason)
             _logger.LogWarning(ex, "[CODE-ERROR] - Intento de reserva en lote con butaca ya tomada (Concurrency Triggered). SeatIds: {SeatIds}", string.Join(",", seatIds));
     }
 }

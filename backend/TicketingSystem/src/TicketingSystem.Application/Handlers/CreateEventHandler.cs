@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
+using TicketingSystem.Domain.Constants;
 using TicketingSystem.Domain.Entities;
 
 namespace TicketingSystem.Application.Handlers;
@@ -26,7 +27,7 @@ public class CreateEventHandler : ICreateEventHandler
             Name = command.Name,
             EventDate = command.EventDate,
             Venue = command.Venue,
-            Status = "Active"
+            Status = EventStatus.Active
         };
 
         foreach (var sectorReq in command.Sectors)
@@ -46,7 +47,7 @@ public class CreateEventHandler : ICreateEventHandler
                     Id = Guid.NewGuid(),
                     RowIdentifier = seatReq.RowIdentifier,
                     SeatNumber = seatReq.SeatNumber,
-                    Status = "Available",
+                    Status = SeatStatus.Available,
                     Version = 0
                 });
             }

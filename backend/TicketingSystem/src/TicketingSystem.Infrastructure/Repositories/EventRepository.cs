@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TicketingSystem.Application.Interfaces;
+using TicketingSystem.Domain.Constants;
 using TicketingSystem.Domain.Entities;
 using TicketingSystem.Infrastructure.Persistence;
 
@@ -22,7 +23,7 @@ public class EventRepository : IEventRepository
             .AsQueryable();
 
         if (!includeDeleted)
-            query = query.Where(e => e.Status == "Active");
+            query = query.Where(e => e.Status == EventStatus.Active);
 
         return await query.OrderBy(e => e.EventDate).ToListAsync(cancellationToken);
     }

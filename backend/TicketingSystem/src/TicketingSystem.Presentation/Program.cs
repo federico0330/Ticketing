@@ -5,6 +5,8 @@ using System.Text;
 using Microsoft.OpenApi.Models;
 using TicketingSystem.Application.Handlers;
 using TicketingSystem.Application.Interfaces;
+using TicketingSystem.Application.Security;
+using TicketingSystem.Application.Services;
 using TicketingSystem.Infrastructure.Persistence;
 using TicketingSystem.Infrastructure.Repositories;
 
@@ -35,6 +37,8 @@ builder.Services.AddScoped<ICreateBatchReservationHandler, CreateBatchReservatio
 builder.Services.AddScoped<ILoginHandler, LoginHandler>();
 builder.Services.AddScoped<IRegisterHandler, RegisterHandler>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IAuditLogger, AuditLogger>();
 
 builder.Services.AddHostedService<TicketingSystem.Infrastructure.BackgroundServices.ReservationExpirationWorker>();
 

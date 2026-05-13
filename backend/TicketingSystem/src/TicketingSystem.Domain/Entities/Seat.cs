@@ -1,3 +1,5 @@
+using TicketingSystem.Domain.Constants;
+
 namespace TicketingSystem.Domain.Entities;
 
 public class Seat
@@ -6,7 +8,7 @@ public class Seat
     public int SectorId { get; set; }
     public string RowIdentifier { get; set; } = string.Empty;
     public int SeatNumber { get; set; }
-    public string Status { get; set; } = "Available";
+    public string Status { get; set; } = SeatStatus.Available;
 
     // Token de concurrencia optimista: si dos requests pisan la misma butaca, EF detecta el conflicto y lanza 409.
     public int Version { get; set; } = 0;

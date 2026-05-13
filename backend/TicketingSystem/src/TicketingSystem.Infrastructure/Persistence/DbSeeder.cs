@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TicketingSystem.Application.Security;
+using TicketingSystem.Domain.Constants;
 using TicketingSystem.Domain.Entities;
 
 namespace TicketingSystem.Infrastructure.Persistence;
@@ -33,7 +34,7 @@ public static class DbSeeder
             Name = "Concierto de Rock 2025",
             EventDate = new DateTime(2025, 12, 20, 21, 0, 0, DateTimeKind.Utc),
             Venue = "Estadio Central",
-            Status = "Active"
+            Status = EventStatus.Active
         };
         context.Events.Add(concertEvent);
         await context.SaveChangesAsync();
@@ -77,7 +78,7 @@ public static class DbSeeder
                     SectorId = sectorId,
                     RowIdentifier = row,
                     SeatNumber = number,
-                    Status = "Available",
+                    Status = SeatStatus.Available,
                     Version = 0
                 };
             }

@@ -4,7 +4,6 @@ using TicketingSystem.Application.Commands;
 using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Application.Queries;
-using TicketingSystem.Application.Handlers;
 
 namespace TicketingSystem.Presentation.Controllers;
 

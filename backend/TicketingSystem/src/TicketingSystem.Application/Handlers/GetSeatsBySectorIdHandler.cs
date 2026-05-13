@@ -1,6 +1,7 @@
 using TicketingSystem.Application.DTOs;
 using TicketingSystem.Application.Interfaces;
 using TicketingSystem.Application.Queries;
+using TicketingSystem.Domain.Constants;
 using TicketingSystem.Domain.Entities;
 
 namespace TicketingSystem.Application.Handlers;
@@ -28,7 +29,7 @@ public class GetSeatsBySectorIdHandler : IGetSeatsBySectorIdHandler
         {
             var userReservations = await _reservationRepository.GetByUserIdAsync(query.CurrentUserId.Value, onlyPending: true, cancellationToken);
             userReservedSeatIds = new HashSet<Guid>(
-                userReservations.Where(r => r.Status == "Pending").Select(r => r.SeatId)
+                userReservations.Where(r => r.Status == ReservationStatus.Pending).Select(r => r.SeatId)
             );
         }
 

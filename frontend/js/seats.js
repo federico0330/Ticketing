@@ -268,7 +268,7 @@ function updateSelectionBar() {
 function clearSelection() {
     selectedSeats.clear();
     updateSelectionBar();
-    document.querySelectorAll('.seat-selected').forEach(el => el.classList.remove('seat-selected'));
+    document.querySelectorAll('#seats-grid .seat-selected').forEach(el => el.classList.remove('seat-selected'));
 }
 
 async function handleBatchReservation() {
@@ -444,7 +444,7 @@ function renderSeats(seats) {
         } else if (seat.Status === 'Reserved' && seat.IsReservedByCurrentUser) {
             seatEl.classList.add('seat-unavailable', 'seat-mine');
             seatEl.title = "Reservado por vos - Click para pagar";
-            seatEl.addEventListener('click', () => payReservedSeat(seat));
+            seatEl.addEventListener('click', payReservedSeat);
         } else if (seat.Status === 'Reserved') {
             seatEl.classList.add('seat-unavailable');
             seatEl.title = "Reservado por otro usuario";
@@ -457,7 +457,7 @@ function renderSeats(seats) {
     }
 }
 
-function payReservedSeat(seat) {
+function payReservedSeat() {
     if (activeReservations.length === 0) {
         showAlert('No tenés una reserva activa para pagar.', 'error');
         return;
