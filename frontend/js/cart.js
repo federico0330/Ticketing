@@ -19,6 +19,7 @@ export function getCart() {
 
 export function addToCart(item) {
     const cart = readCart();
+    // Evitamos duplicados por reservationId: la misma reserva podría llegar dos veces si el polling y el response del POST se cruzan.
     if (cart.some(i => i.reservationId === item.reservationId)) return cart;
     cart.push(item);
     writeCart(cart);
@@ -38,6 +39,7 @@ export function clearCart() {
     updateCartBadge();
 }
 
+// El timer del carrito se alinea con la reserva más próxima a expirar: si esa se cae, el resto también deja de servir.
 export function getEarliestExpiry() {
     const cart = readCart();
     if (cart.length === 0) return null;

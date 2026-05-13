@@ -23,6 +23,7 @@ public class DeleteEventHandler : IDeleteEventHandler
         if (@event.Status == "Deleted")
             return;
 
+        // Soft delete: conservamos el evento para no romper reservas históricas que lo referencian.
         @event.Status = "Deleted";
 
         await _unitOfWork.BeginTransactionAsync(cancellationToken);

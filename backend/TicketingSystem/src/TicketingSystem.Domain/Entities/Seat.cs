@@ -8,7 +8,7 @@ public class Seat
     public int SeatNumber { get; set; }
     public string Status { get; set; } = "Available";
 
-    // Se utiliza control de concurrencia para evitar que dos usuarios reserven la misma butaca simultáneamente
+    // Token de concurrencia optimista: si dos requests pisan la misma butaca, EF detecta el conflicto y lanza 409.
     public int Version { get; set; } = 0;
 
     public Sector Sector { get; set; } = null!;

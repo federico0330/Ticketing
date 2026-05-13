@@ -71,7 +71,14 @@ public class CreateBatchReservationHandler : ICreateBatchReservationHandler
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
-            var dtos = reservations.Select(r => new ReservationDto(r.Id, r.UserId, r.SeatId, r.Status, r.ReservedAt, r.ExpiresAt)).ToList();
+            var dtos = reservations.Select(r => new ReservationDto(
+                r.Id,
+                r.UserId,
+                r.SeatId,
+                r.Status,
+                DateTime.SpecifyKind(r.ReservedAt, DateTimeKind.Utc),
+                DateTime.SpecifyKind(r.ExpiresAt, DateTimeKind.Utc)
+            )).ToList();
             return new BatchReservationResponse { Success = true, Message = $"Reservaste {seatIds.Count} butaca(s).", Reservations = dtos };
         }
         catch (ConcurrencyException ex)

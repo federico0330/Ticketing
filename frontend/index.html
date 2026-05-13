@@ -212,15 +212,18 @@
         <button id="btn-back-sectors" class="btn btn-outline-secondary mb-3">← Volver a Sectores</button>
         <h2 class="mb-3 text-secondary border-bottom pb-2" id="sector-title">Mapa de Asientos</h2>
 
-        <div class="mb-4 d-flex gap-3 align-items-center justify-content-center p-3 rounded shadow legend-container">
+        <div class="mb-4 d-flex flex-wrap gap-3 align-items-center justify-content-center p-3 rounded shadow legend-container">
           <div class="d-flex align-items-center">
             <div class="seat-available rounded me-2" style="width:20px;height:20px;"></div> Disponible
           </div>
           <div class="d-flex align-items-center">
-            <div class="seat-reserved rounded me-2" style="width:20px;height:20px;"></div> Reservado
+            <div class="seat-selected rounded me-2" style="width:20px;height:20px;"></div> Seleccionado
           </div>
           <div class="d-flex align-items-center">
-            <div class="seat-sold rounded me-2" style="width:20px;height:20px;"></div> Vendido
+            <div class="seat-unavailable rounded me-2" style="width:20px;height:20px;"></div> Ocupado
+          </div>
+          <div class="d-flex align-items-center">
+            <span class="me-2" style="font-size:18px;color:#fbbf24;">★</span> Mi reserva
           </div>
         </div>
 

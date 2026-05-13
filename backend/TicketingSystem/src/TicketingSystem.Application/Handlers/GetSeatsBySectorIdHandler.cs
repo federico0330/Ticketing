@@ -22,6 +22,7 @@ public class GetSeatsBySectorIdHandler : IGetSeatsBySectorIdHandler
     {
         var seats = await _seatRepository.GetBySectorIdAsync(query.SectorId, cancellationToken);
 
+        // Marcamos las butacas reservadas por el propio usuario para diferenciarlas visualmente ("mi reserva" vs "ocupada por otro").
         HashSet<Guid>? userReservedSeatIds = null;
         if (query.CurrentUserId.HasValue)
         {

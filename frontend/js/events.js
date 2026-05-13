@@ -1,6 +1,6 @@
 import { fetchEvents, fetchSectorsByEvent, login, register, fetchMyReservations, updateEvent, deleteEvent } from './api.js';
-import { loadSeats, checkAndShowActiveReservation } from './seats.js?v=2';
-import { clearCart, updateCartBadge } from './cart.js';
+import { loadSeats, checkAndShowActiveReservation, stopSeatsPolling } from './seats.js?v=2';
+import { clearCart, updateCartBadge, getCart } from './cart.js';
 
 const loginSection = document.getElementById('login-section');
 const eventsSection = document.getElementById('events-section');
@@ -100,14 +100,19 @@ async function handleRegister(e) {
     }
 }
 
+// Al volver a la app (refresh, re-login) recuperamos la reserva activa para que el timer y el carrito sigan reflejando la realidad del backend.
 async function checkUserReservations(userId) {
     try {
         const reservations = await fetchMyReservations(userId);
-        if (reservations && reservations.length > 0) {
-            const pendingReservation = reservations.find(r => r.Status === 'Pending');
-            if (pendingReservation) {
-                checkAndShowActiveReservation(pendingReservation);
-            }
+        const now = Date.now();
+        const pendingReservation = (reservations || []).find(r =>
+            r.Status === 'Pending' && new Date(r.ExpiresAt).getTime() > now
+        );
+        if (pendingReservation) {
+            checkAndShowActiveReservation(pendingReservation);
+        } else if (getCart().length > 0) {
+            // El cart en localStorage quedó stale (expiró/se pagó en otro tab): lo limpiamos para no mostrar items fantasma.
+            clearCart();
         }
     } catch (error) {
         console.error('Error checking user reservations:', error);
@@ -115,6 +120,7 @@ async function checkUserReservations(userId) {
 }
 
 function handleLogout() {
+    stopSeatsPolling();
     localStorage.removeItem('currentUser');
     clearCart();
     userInfo.classList.add('d-none');
@@ -152,6 +158,7 @@ function showAdminSection() {
 }
 
 export function showEvents() {
+    stopSeatsPolling();
     sectorsSection.classList.add('d-none');
     seatsSection.classList.add('d-none');
     if(adminSection) adminSection.classList.add('d-none');
@@ -159,6 +166,7 @@ export function showEvents() {
 }
 
 export function showSectors() {
+    stopSeatsPolling();
     seatsSection.classList.add('d-none');
     sectorsSection.classList.remove('d-none');
 }

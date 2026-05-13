@@ -8,7 +8,7 @@ public class ReservationExpirationWorker : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ReservationExpirationWorker> _logger;
-    private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(30);
+    private readonly TimeSpan _checkInterval = TimeSpan.FromSeconds(10);
 
     public ReservationExpirationWorker(
         IServiceProvider serviceProvider,
@@ -41,6 +41,7 @@ public class ReservationExpirationWorker : BackgroundService
 
     private async Task ProcessExpiredReservationsAsync(CancellationToken stoppingToken)
     {
+        // Scope nuevo por tick: el DbContext es scoped y no puede compartirse entre ejecuciones del background service.
         using var scope = _serviceProvider.CreateScope();
         var reservationRepository = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.IReservationRepository>();
         var seatRepository = scope.ServiceProvider.GetRequiredService<TicketingSystem.Application.Interfaces.ISeatRepository>();
@@ -51,6 +52,7 @@ public class ReservationExpirationWorker : BackgroundService
 
         foreach (var reservation in expiredReservations)
         {
+            // Transacción por reserva: si una falla no arrastramos al resto del lote.
             await unitOfWork.BeginTransactionAsync();
             try
             {
@@ -68,7 +70,7 @@ public class ReservationExpirationWorker : BackgroundService
                 await auditLogRepository.CreateAsync(new TicketingSystem.Domain.Entities.AuditLog
                 {
                     Id = Guid.NewGuid(),
-                    UserId = null, // El usuario es nulo porque la expiración es una tarea automática del sistema
+                    UserId = null, // Acción del sistema, no de un usuario; queda explícito en el log de auditoría.
                     Action = "RESERVATION_EXPIRED",
                     EntityType = "Reservation",
                     EntityId = reservation.Id.ToString(),
@@ -92,6 +94,31 @@ public class ReservationExpirationWorker : BackgroundService
                 await unitOfWork.RollbackTransactionAsync();
                 unitOfWork.ClearChanges();
                 _logger.LogError(ex, "[CODE-ERROR] - Failed to expire reservation {ReservationId}.", reservation.Id);
+                try
+                {
+                    await auditLogRepository.CreateAsync(new TicketingSystem.Domain.Entities.AuditLog
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = null,
+                        Action = "RESERVATION_EXPIRED",
+                        EntityType = "Reservation",
+                        EntityId = reservation.Id.ToString(),
+                        Details = System.Text.Json.JsonSerializer.Serialize(new
+                        {
+                            reservation.Id,
+                            reservation.SeatId,
+                            Status = "FAILED",
+                            Error = ex.Message,
+                            TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                        }),
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await unitOfWork.SaveChangesAsync();
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogError(auditEx, "[CODE-ERROR] - No se pudo registrar la auditoría de fallo de expiración.");
+                }
             }
         }
     }

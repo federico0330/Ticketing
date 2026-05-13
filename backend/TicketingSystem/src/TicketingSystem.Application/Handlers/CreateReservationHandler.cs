@@ -34,6 +34,7 @@ public class CreateReservationHandler : ICreateReservationHandler
 
     public async Task<ReservationDto> HandleAsync(CreateReservationCommand command, CancellationToken cancellationToken = default)
     {
+        // Auditamos el intento antes de la transacción para que quede registrado incluso si la reserva falla por concurrencia.
         await LogAuditAsync(command.UserId, "RESERVE_ATTEMPT", "Seat", command.SeatId.ToString(), new
         {
             command.SeatId,
@@ -70,8 +71,8 @@ public class CreateReservationHandler : ICreateReservationHandler
                 reservation.UserId,
                 reservation.SeatId,
                 reservation.Status,
-                reservation.ReservedAt,
-                reservation.ExpiresAt
+                DateTime.SpecifyKind(reservation.ReservedAt, DateTimeKind.Utc),
+                DateTime.SpecifyKind(reservation.ExpiresAt, DateTimeKind.Utc)
             );
         }
         catch (ConcurrencyException ex)
@@ -128,6 +129,7 @@ public class CreateReservationHandler : ICreateReservationHandler
     private async Task HandleReservationFailureAsync(int userId, Guid seatId, string reason, Exception ex, CancellationToken cancellationToken)
     {
         await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+        // Limpiamos el ChangeTracker para que el SaveChanges del log de fallo no re-aplique los cambios revertidos.
         _unitOfWork.ClearChanges();
         await LogAuditAsync(userId, "RESERVE_FAILED", "Seat", seatId.ToString(), new
         {

@@ -33,12 +33,13 @@ public class LoginHandler : ILoginHandler
         }
         catch
         {
-            // Handle potential format errors for old plaintext passwords
+            // Tolerancia a usuarios viejos sin formato salt:hash; el fallback de plaintext se valida abajo.
         }
 
         if (!isValid && user.PasswordHash != request.Password)
             return null;
 
+        // Roles definidos en appsettings.json para poder cambiar admins sin tocar la base.
         var adminUsers = _configuration.GetSection("AdminUsers").Get<string[]>() ?? Array.Empty<string>();
         var role = adminUsers.Contains(user.Email) ? "Admin" : "User";
 

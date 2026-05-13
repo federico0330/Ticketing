@@ -39,7 +39,7 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
-            // Simulación de pasarela de pagos
+            // Sin pasarela real: las tarjetas que terminan en 0000 se rechazan para poder demostrar el flujo de error.
             if (command.CreditCardNumber.Replace(" ", "").EndsWith("0000"))
             {
                 throw new PaymentFailedException("Rechazo bancario simulado. La tarjeta finaliza en 0000.");
@@ -51,8 +51,9 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
                 if (reservation is null)
                     throw new ReservationNotFoundException(reservationId);
 
+                // Si una reserva del lote ya cambió de estado (otro tab, expiración, etc.) la saltamos para no romper las demás.
                 if (reservation.Status != "Pending")
-                    continue; // Skip if already processed or expired
+                    continue;
 
                 if (reservation.ExpiresAt <= DateTime.UtcNow)
                     throw new ReservationExpiredException(reservationId);
@@ -75,6 +76,7 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
                     Action = "PAYMENT_SUCCESS",
                     EntityType = "Reservation",
                     EntityId = reservation.Id.ToString(),
+                    // Guardamos solo los últimos 4 dígitos: no debe quedar nunca el número completo en logs.
                     Details = System.Text.Json.JsonSerializer.Serialize(new { reservationId, CardMasked = "****" + command.CreditCardNumber.Substring(Math.Max(0, command.CreditCardNumber.Length - 4)) }),
                     CreatedAt = DateTime.UtcNow
                 }, cancellationToken);
@@ -95,6 +97,22 @@ public class ConfirmPaymentHandler : IConfirmPaymentHandler
             await _unitOfWork.RollbackTransactionAsync(cancellationToken);
             _unitOfWork.ClearChanges();
             _logger.LogError(ex, "[CODE-ERROR] - Fallo al confirmar el pago para las reservas.");
+            await _auditLogRepository.CreateAsync(new AuditLog
+            {
+                Id = Guid.NewGuid(),
+                UserId = null,
+                Action = "PAYMENT_FAILED",
+                EntityType = "Reservation",
+                EntityId = string.Join(",", command.ReservationIds),
+                Details = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    ReservationIds = command.ReservationIds,
+                    Error = ex.Message,
+                    TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                }),
+                CreatedAt = DateTime.UtcNow
+            }, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
             throw;
         }
     }

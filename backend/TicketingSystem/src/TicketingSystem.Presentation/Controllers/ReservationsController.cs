@@ -50,7 +50,7 @@ public class ReservationsController : ControllerBase
         return Ok(response);
     }
 
-    [HttpPost("payments")]
+    [HttpPost("batch-payments")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -1,5 +1,5 @@
 import { createEvent } from './api.js';
-import { showAlert, showEvents } from './events.js';
+import { showAlert, showEvents, loadEvents } from './events.js';
 
 let pendingSectors = [];
 
@@ -41,8 +41,9 @@ function generateGrid(e) {
     grid.innerHTML = '';
     grid.style.gridTemplateColumns = `repeat(${cols}, 45px)`;
 
+    // Filas como letras (A, B, C...) para coincidir con cómo se identifican butacas en venues reales.
     for (let r = 0; r < rows; r++) {
-        const rowIdentifier = String.fromCharCode(65 + r); // A, B, C...
+        const rowIdentifier = String.fromCharCode(65 + r);
         for (let c = 1; c <= cols; c++) {
             const cell = document.createElement('div');
             cell.className = 'seat seat-available';
@@ -100,7 +101,6 @@ function addSector(e) {
 
     updateSectorsList();
 
-    // Clear sector form
     document.getElementById('admin-sector-name').value = '';
     document.getElementById('admin-sector-price').value = '';
     grid.innerHTML = '';
@@ -143,25 +143,23 @@ function updateSectorsList() {
 
 function editSector(index) {
     const sector = pendingSectors[index];
-    
-    // Fill the configuration form with sector data
+
     document.getElementById('admin-sector-name').value = sector.Name;
     document.getElementById('admin-sector-price').value = sector.Price;
     document.getElementById('admin-sector-rows').value = sector.Rows;
     document.getElementById('admin-sector-cols').value = sector.Cols;
-    
-    // Generate the base grid
+
     generateGrid();
-    
-    // Apply active/inactive seats based on the saved state
+
+    // Empezamos con todo inactivo y prendemos solo los que estaban marcados; evita recrear listeners y mantiene el estado original.
     const grid = document.getElementById('admin-seat-grid');
     const cells = grid.querySelectorAll('.seat');
-    
+
     cells.forEach(cell => {
         cell.classList.remove('seat-available');
         cell.classList.add('seat-inactive');
     });
-    
+
     sector.Seats.forEach(s => {
         const cell = grid.querySelector(`.seat[data-row="${s.RowIdentifier}"][data-col="${s.SeatNumber}"]`);
         if (cell) {
@@ -170,7 +168,7 @@ function editSector(index) {
         }
     });
 
-    // Remove from pending list (it's now back in "edit" mode)
+    // Lo sacamos del listado porque vuelve a la zona de edición; si el admin confirma, se re-agrega como sector nuevo.
     pendingSectors.splice(index, 1);
     updateSectorsList();
 }
@@ -196,7 +194,7 @@ async function handleCreateEvent(e) {
         return;
     }
 
-    // API expects Name, EventDate, Venue, Sectors (with Name, Price, Seats)
+    // Mandamos solo los seats marcados como activos: la capacidad la calcula el backend a partir del listado.
     const payload = {
         Name: name,
         EventDate: new Date(dateInput).toISOString(),
@@ -217,10 +215,9 @@ async function handleCreateEvent(e) {
         const result = await createEvent(payload);
         if (result.ok) {
             showAlert('Evento creado exitosamente', 'success');
-            // Reset state
             pendingSectors = [];
             updateSectorsList();
-            
+
             const form = document.getElementById('admin-event-form');
             if(form) form.reset();
             else {
@@ -232,6 +229,7 @@ async function handleCreateEvent(e) {
             document.getElementById('admin-sector-name').value = '';
             document.getElementById('admin-sector-price').value = '';
             document.getElementById('admin-seat-grid').innerHTML = '';
+            await loadEvents();
             showEvents();
         } else {
             let msg = result.data.Message || 'Error al crear evento';

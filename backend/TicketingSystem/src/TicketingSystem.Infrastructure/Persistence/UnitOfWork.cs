@@ -46,6 +46,7 @@ public class UnitOfWork : IUnitOfWork
         }
         catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
         {
+            // Traducimos a una excepción de dominio para que Application no dependa de EF y el middleware mapee a 409.
             throw new TicketingSystem.Domain.Exceptions.ConcurrencyException("El recurso fue modificado por otro usuario.");
         }
     }

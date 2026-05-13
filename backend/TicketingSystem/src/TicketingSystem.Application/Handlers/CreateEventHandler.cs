@@ -29,13 +29,9 @@ public class CreateEventHandler : ICreateEventHandler
             Status = "Active"
         };
 
-        if (@event.Sectors == null)
-        {
-            @event.Sectors = new System.Collections.Generic.List<Sector>();
-        }
-
         foreach (var sectorReq in command.Sectors)
         {
+            // Capacity derivada de los seats explícitos: el admin marcó qué celdas son "activas" en la grilla del front.
             var sector = new Sector
             {
                 Name = sectorReq.Name,
@@ -43,22 +39,16 @@ public class CreateEventHandler : ICreateEventHandler
                 Capacity = sectorReq.Seats.Count
             };
 
-            if (sector.Seats == null)
-            {
-                sector.Seats = new System.Collections.Generic.List<Seat>();
-            }
-
             foreach (var seatReq in sectorReq.Seats)
             {
-                var seat = new Seat
+                sector.Seats.Add(new Seat
                 {
                     Id = Guid.NewGuid(),
                     RowIdentifier = seatReq.RowIdentifier,
                     SeatNumber = seatReq.SeatNumber,
                     Status = "Available",
                     Version = 0
-                };
-                sector.Seats.Add(seat);
+                });
             }
 
             @event.Sectors.Add(sector);

@@ -1,6 +1,8 @@
-import { fetchSeatsBySector, createReservation, confirmPayment, batchPayment, fetchMyReservations, batchReserveSeats } from './api.js';
+import { fetchSeatsBySector, confirmPayment, fetchMyReservations, batchReserveSeats } from './api.js';
 import { showAlert } from './events.js';
 import { addToCart, removeFromCart, clearCart, getCart, getEarliestExpiry, updateCartBadge, renderCartModal } from './cart.js';
+
+const SEATS_POLL_MS = 7000;
 
 const seatsSection = document.getElementById('seats-section');
 const seatsGrid = document.getElementById('seats-grid');
@@ -16,20 +18,19 @@ const btnPay = document.getElementById('btn-pay-reservation');
 
 let currentSectorId = null;
 let currentSectorName = null;
-let selectedSeat = null;
-let confirmModal = null;
-let activeReservations = []; // Ahora soportamos múltiples reservas
+// El usuario puede tener varias reservas Pending en paralelo (carrito multi-butaca).
+let activeReservations = [];
 let countdownInterval = null;
 let currentUserId = null;
+let seatsPollInterval = null;
 
 let paymentModal = null;
+let selectedSeats = new Map();
+let currentSectorPrice = 0;
+let currentEventName = '';
+let cartModal = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const modalEl = document.getElementById('confirmModal');
-    if (modalEl) {
-        confirmModal = new bootstrap.Modal(modalEl);
-    }
-
     const paymentModalEl = document.getElementById('paymentModal');
     if (paymentModalEl) {
         paymentModal = new bootstrap.Modal(paymentModalEl);
@@ -43,6 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const cartModalEl = document.getElementById('cartModal');
+    if (cartModalEl) {
+        cartModal = new bootstrap.Modal(cartModalEl);
+    }
+
     const cardNumberInput = document.getElementById('cardNumber');
     if (cardNumberInput) {
         cardNumberInput.addEventListener('input', formatCardNumber);
@@ -51,10 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const cardExpiryInput = document.getElementById('cardExpiry');
     if (cardExpiryInput) {
         cardExpiryInput.addEventListener('input', formatExpiryDate);
-    }
-
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', handleReservation);
     }
 
     if (btnPay) {
@@ -133,7 +135,7 @@ async function handlePaymentSubmit(e) {
     submitBtn.disabled = true;
     showLoading();
 
-    // Simular retraso de 2 segundos para mayor realismo
+    // Demora artificial: el pago es simulado y responde al instante; sin esta pausa el spinner ni se vería.
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
@@ -143,8 +145,13 @@ async function handlePaymentSubmit(e) {
         if (result.ok) {
             if (paymentModal) paymentModal.hide();
             stopTimer();
+            clearCart();
+            if (cartModal) cartModal.hide();
+            renderCartModal();
+            updateCartBadge();
             showAlert(`¡Pago confirmado! Se procesaron ${resIds.length} entradas.`, 'success');
             document.getElementById('payment-form').reset();
+            stopSeatsPolling();
             document.getElementById('seats-section').classList.add('d-none');
             document.getElementById('events-section').classList.remove('d-none');
         } else {
@@ -161,24 +168,28 @@ async function handlePaymentSubmit(e) {
 }
 
 function startTimer(expiresAt) {
-    if (countdownInterval) clearInterval(countdownInterval);
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
 
     const expiryDate = new Date(expiresAt).getTime();
+    if (isNaN(expiryDate) || expiryDate - Date.now() <= 0) {
+        handleTimerExpiry();
+        return;
+    }
+
     reservationBanner.classList.remove('d-none');
 
     const updateTimer = () => {
-        const now = new Date().getTime();
-        const distance = expiryDate - now;
+        const distance = expiryDate - Date.now();
 
-        if (distance < 0) {
-            stopTimer();
-            clearCart();
-            showAlert('Tu tiempo de reserva ha expirado.', 'error');
-            refreshSeats();
+        if (distance <= 0) {
+            handleTimerExpiry();
             return;
         }
 
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const minutes = Math.floor(distance / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
         timerDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -188,11 +199,28 @@ function startTimer(expiresAt) {
     countdownInterval = setInterval(updateTimer, 1000);
 }
 
+function handleTimerExpiry() {
+    stopTimer();
+    clearCart();
+    if (cartModal) cartModal.hide();
+    renderCartModal();
+    updateCartBadge();
+    showAlert('Tu tiempo de reserva ha expirado.', 'error');
+    refreshSeats();
+}
+
 function stopTimer() {
     if (countdownInterval) clearInterval(countdownInterval);
     reservationBanner.classList.add('d-none');
     activeReservations = [];
-    selectedSeat = null;
+}
+
+function handlePayment() {
+    if (activeReservations.length > 0 && paymentModal) {
+        paymentModal.show();
+    } else {
+        showAlert('No tenés reservas activas para pagar.', 'error');
+    }
 }
 
 export function checkAndShowActiveReservation(reservation) {
@@ -204,9 +232,9 @@ export function checkAndShowActiveReservation(reservation) {
     }
     
     currentUserId = reservation.UserId;
-    
-    // El timer siempre usa la fecha de expiración más cercana
-    const earliestExpiry = activeReservations.reduce((prev, curr) => 
+
+    // Mostramos el venc más cercano: si la primera expira, igual queremos liberar todo el lote.
+    const earliestExpiry = activeReservations.reduce((prev, curr) =>
         new Date(prev.ExpiresAt) < new Date(curr.ExpiresAt) ? prev : curr
     );
     
@@ -220,10 +248,8 @@ function toggleSeatSelection(seat, seatEl) {
     if (selectedSeats.has(seat.Id)) {
         selectedSeats.delete(seat.Id);
         seatEl.classList.remove('seat-selected');
-        seatEl.classList.add('seat-available');
     } else {
         selectedSeats.set(seat.Id, seat);
-        seatEl.classList.remove('seat-available');
         seatEl.classList.add('seat-selected');
     }
     updateSelectionBar();
@@ -240,15 +266,9 @@ function updateSelectionBar() {
 }
 
 function clearSelection() {
-    for (const seatId of selectedSeats.keys()) {
-        const el = document.getElementById(`seat-${seatId}`);
-        if (el) {
-            el.classList.remove('seat-selected');
-            el.classList.add('seat-available');
-        }
-    }
     selectedSeats.clear();
     updateSelectionBar();
+    document.querySelectorAll('.seat-selected').forEach(el => el.classList.remove('seat-selected'));
 }
 
 async function handleBatchReservation() {
@@ -321,10 +341,26 @@ export async function loadSeats(sectorId, sectorName, sectorPrice = 0, eventName
     seatsSection.classList.remove('d-none');
     clearSelection();
     await refreshSeats();
+    startSeatsPolling();
 }
 
-async function refreshSeats() {
-    showLoading();
+function startSeatsPolling() {
+    stopSeatsPolling();
+    // Polling silencioso: actualiza el mapa sin mostrar el spinner para no molestar al usuario que está eligiendo.
+    seatsPollInterval = setInterval(() => {
+        refreshSeats({ silent: true }).catch(err => console.error('Polling error:', err));
+    }, SEATS_POLL_MS);
+}
+
+export function stopSeatsPolling() {
+    if (seatsPollInterval) {
+        clearInterval(seatsPollInterval);
+        seatsPollInterval = null;
+    }
+}
+
+async function refreshSeats({ silent = false } = {}) {
+    if (!silent) showLoading();
     try {
         const savedUser = localStorage.getItem('currentUser');
         let userId = null;
@@ -335,16 +371,20 @@ async function refreshSeats() {
 
             try {
                 const reservations = await fetchMyReservations(userId);
-                const pending = reservations?.filter(r => r.Status === 'Pending') || [];
-                
+                const now = Date.now();
+                const pending = (reservations || []).filter(r =>
+                    r.Status === 'Pending' && new Date(r.ExpiresAt).getTime() > now
+                );
+
                 if (pending.length > 0) {
                     activeReservations = pending;
-                    const earliestExpiry = activeReservations.reduce((prev, curr) => 
+                    const earliestExpiry = activeReservations.reduce((prev, curr) =>
                         new Date(prev.ExpiresAt) < new Date(curr.ExpiresAt) ? prev : curr
                     );
                     startTimer(earliestExpiry.ExpiresAt);
                 } else {
                     stopTimer();
+                    if (getCart().length > 0) clearCart();
                 }
             } catch (err) {
                 console.error("Error fetching reservations in refreshSeats:", err);
@@ -354,9 +394,9 @@ async function refreshSeats() {
         const seats = await fetchSeatsBySector(currentSectorId, userId);
         renderSeats(seats);
     } catch (error) {
-        showAlert('No se pudieron cargar los asientos.', 'error');
+        if (!silent) showAlert('No se pudieron cargar los asientos.', 'error');
     } finally {
-        hideLoading();
+        if (!silent) hideLoading();
     }
 }
 
@@ -366,6 +406,20 @@ function renderSeats(seats) {
     if (!seats || seats.length === 0) {
         seatsGrid.innerHTML = '<p class="text-muted my-3">No hay asientos disponibles.</p>';
         return;
+    }
+
+    // Si una butaca seleccionada dejó de estar disponible (otro usuario la tomó), la quitamos de la selección.
+    const availableIds = new Set(seats.filter(s => s.Status === 'Available').map(s => s.Id));
+    let droppedFromSelection = 0;
+    for (const id of [...selectedSeats.keys()]) {
+        if (!availableIds.has(id)) {
+            selectedSeats.delete(id);
+            droppedFromSelection++;
+        }
+    }
+    if (droppedFromSelection > 0) {
+        updateSelectionBar();
+        showAlert(`${droppedFromSelection} butaca(s) de tu selección fueron tomadas por otro usuario.`, 'error');
     }
 
     let maxSeatNumber = 1;
@@ -385,16 +439,17 @@ function renderSeats(seats) {
 
         if (seat.Status === 'Available') {
             seatEl.classList.add('seat-available');
+            if (selectedSeats.has(seat.Id)) seatEl.classList.add('seat-selected');
             seatEl.addEventListener('click', () => toggleSeatSelection(seat, seatEl));
         } else if (seat.Status === 'Reserved' && seat.IsReservedByCurrentUser) {
-            seatEl.classList.add('seat-reserved-by-me');
+            seatEl.classList.add('seat-unavailable', 'seat-mine');
             seatEl.title = "Reservado por vos - Click para pagar";
             seatEl.addEventListener('click', () => payReservedSeat(seat));
         } else if (seat.Status === 'Reserved') {
-            seatEl.classList.add('seat-reserved');
+            seatEl.classList.add('seat-unavailable');
             seatEl.title = "Reservado por otro usuario";
         } else {
-            seatEl.classList.add('seat-sold');
+            seatEl.classList.add('seat-unavailable');
             seatEl.title = "Vendido";
         }
 
@@ -403,64 +458,10 @@ function renderSeats(seats) {
 }
 
 function payReservedSeat(seat) {
-    if (!activeReservation) {
+    if (activeReservations.length === 0) {
         showAlert('No tenés una reserva activa para pagar.', 'error');
         return;
     }
     handlePayment();
 }
 
-async function handleReservation() {
-    if (!selectedSeat) return;
-
-    const { seat, element } = selectedSeat;
-    if (confirmModal) confirmModal.hide();
-
-    const savedUser = localStorage.getItem('currentUser');
-    if (!savedUser) {
-        showAlert('Debés iniciar sesión para reservar.', 'error');
-        window.location.reload();
-        return;
-    }
-    const user = JSON.parse(savedUser);
-
-    element.classList.remove('seat-available');
-    element.classList.add('seat-loading');
-    showLoading();
-
-    try {
-        const result = await createReservation(seat.Id, user.Id);
-
-        if (result.ok) {
-            element.classList.remove('seat-loading');
-            element.classList.add('seat-reserved-by-me');
-            element.title = "Reservado por vos - Click para pagar";
-
-            const clone = element.cloneNode(true);
-            element.parentNode.replaceChild(clone, element);
-
-            activeReservations.push(result.data);
-            
-            const earliestExpiry = activeReservations.reduce((prev, curr) => 
-                new Date(prev.ExpiresAt) < new Date(curr.ExpiresAt) ? prev : curr
-            );
-            startTimer(earliestExpiry.ExpiresAt);
-
-            const count = activeReservations.length;
-            showAlert(`¡Reserva exitosa! Tenés ${count} asiento${count > 1 ? 's' : ''} reservados.`, 'success');
-            selectedSeat = null;
-        } else if (result.status === 409) {
-            showAlert('Este asiento ya fue tomado por otro usuario.', 'error');
-            selectedSeat = null;
-            await refreshSeats();
-        } else {
-            throw new Error(result.data?.Message || 'Error desconocido del servidor');
-        }
-    } catch (error) {
-        element.classList.remove('seat-loading');
-        element.classList.add('seat-available');
-        showAlert(`Error al realizar la reserva: ${error.message}`, 'error');
-    } finally {
-        hideLoading();
-    }
-}

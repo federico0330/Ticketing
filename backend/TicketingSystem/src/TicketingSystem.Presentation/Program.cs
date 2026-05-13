@@ -20,7 +20,7 @@ builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// Registramos dependencias por interfaz para facilitar testing y desacoplar la implementación
+// Inyectamos por interfaz (DIP): los controllers no conocen la implementación concreta y los handlers son sustituibles en tests.
 builder.Services.AddScoped<IGetAllEventsHandler, GetAllEventsHandler>();
 builder.Services.AddScoped<IGetSectorsByEventIdHandler, GetSectorsByEventIdHandler>();
 builder.Services.AddScoped<IGetSeatsBySectorIdHandler, GetSeatsBySectorIdHandler>();
@@ -41,6 +41,7 @@ builder.Services.AddHostedService<TicketingSystem.Infrastructure.BackgroundServi
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        // Mantenemos PascalCase en el JSON para que el frontend (que consume Id, Name, etc.) no necesite mapear nombres.
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
     });
 
@@ -98,6 +99,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Retry de migración/seed: en docker-compose la API arranca antes de que SQL Server termine de inicializar.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
